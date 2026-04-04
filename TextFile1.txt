@@ -1,0 +1,77 @@
+﻿Dự kiến chức năng
+#Supplier
+- Index
+- Create
+- Edit(Id)
+- Delete(Id)
+#Customer
+- Index
++ Hiển thị dánh sách dưới dnagj phân trang
++ Tìm kiếm theo tên
++ Điều hướng các chức năng liên quan đến khách hàng
+- Create
+- Edit(Id)
+- Delete(Id)
+- ChangePassword(Id)
+#Shipper
+- Index
+- Create
+- Edit(Id)
+- Delete(Id)
+#Employee
+- Index
+- Create
+- Edit(Id)
+- Delete(Id)
+- ChangePassword(Id)
+- ChangeRole(Id)
+#Category
+- Index
+- Create
+- Edit(Id)
+- Delete(Id)
+#Product
+- Index
+- Create
+- Edit(Id)
+- Delete(Id)
+- Detail(Id)
+- ListAttributes(Id)
+- CreateAttributes(Id)?attributesId={attributesId}
+- EditAttributes(Id)?attributesId={attributesId}
+- DeleteAttributes(Id)?attributesId={attributesId}
+- ListPhoto(Id)
+- CreatePhoto(Id)
+- EditPhoto(Id)?photoId={photoId}
+- DeletePhoto(Id)?photoId={photoId}
+#Order
+- Index
+- Create
+...
+- Mặt hàng: đầu vào tìm kiếm/lọc dữ liệu
+   - Loại hàng(select)
+   - Nhà cung cấp (select)
+   - Khoảng giá
+   - Tên mặt hàng
+- Đơn hàng: đầu vào tìm kiếm/ lọc dữ liệu
+   - Trạng thái (select)
+   - Tgian (Từ ngày - đến ngày)
+   - Ten khách hàng
+
+   Đăng nhập và phân quyền đối với tài khoản:
+   Quy trình:
+   - Người sdung phải cung cấp thông tin cho hệ thống để hệ thống kiểm tra xem có quyền truy cập vaò hệ thống hay không 
+   - Hệ thống kiểm tra thông tin đăng nhập, nếu hợp lệ hệ thống sẽ cấp giấy chứng nhận (principal) cho phía client dưới dạng 1 cookie
+   - Phía client phải lưu giữ cookie và xuất trình cookie mỗi khi thực hiện các yêu cầu lên web server (nằm trong phần header của request )
+   - Hệ thống sẽ căn cứ vào giấy chứng nhận để kiểm tra tính hợp lệ của người dùng 
+   2 Thuật ngữ:
+   - Athentication
+   - Authorization
+   Trong ASP.NET Core muốn dùng chức năng đăng nhập/phân quyền thì phải đăng ký
+   Đối với các Controller hoặc Action mà yêu cầu phải đăng nhập mới được sử dụng, đăjt chỉ thị [Authorize] ở trước
+   Sử dụng chỉ thị [AllowAnonymous] trước Action mà không yêu cầu phải đăng nhập để sử dụng
+   Trong trường hợp cần phải kiểm tra "quyền" đối với Controller hoặc Action 
+      [Authorize(Roles = "Danh_sách_quyền")]
+   Trong đó: Danh sách quyền là tên của các Role, viết phân cách nhau bới dấu phẩy
+   Trong Action hoặc View, muốn lấy giấy chưnngs nhận (ClaimsPrincipal), thông tin thuộc tính user
+      WebUserData -> CreatePrincipal -> ClaimsPrincipal

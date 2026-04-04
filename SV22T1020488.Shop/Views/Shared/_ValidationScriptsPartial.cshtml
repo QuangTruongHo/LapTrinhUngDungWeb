@@ -1,0 +1,21 @@
+﻿<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+    // Thêm một chút tùy chỉnh hiển thị lỗi cho Bootstrap 5
+    $(function() {
+        $('form').each(function() {
+            var validator = $(this).data('validator');
+            if (validator) {
+                validator.settings.errorElement = 'div';
+                validator.settings.errorClass = 'invalid-feedback';
+                validator.settings.highlight = function(element) {
+                    $(element).addClass('is-invalid');
+                };
+                validator.settings.unhighlight = function(element) {
+                    $(element).removeClass('is-invalid');
+                };
+            }
+        });
+    });
+</script>

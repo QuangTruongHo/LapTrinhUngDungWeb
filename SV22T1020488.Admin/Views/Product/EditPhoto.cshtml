@@ -1,0 +1,146 @@
+﻿@model SV22T1020488.Models.Catalog.ProductPhoto
+@{
+    ViewBag.Title = Model.PhotoID == 0 ? "Thêm ảnh cho mặt hàng" : "Thay đổi ảnh mặt hàng";
+}
+
+@section PageToolBar {
+    <button type="submit" form="formEdit" class="btn btn-primary">
+        <i class="bi bi-save"></i>
+        Lưu thông tin
+    </button>
+
+    @* Quay lại trang edit sản phẩm và nhảy đến đúng tab photos *@
+    <a href="~/Product/Edit/@Model.ProductID#photos" class="btn btn-secondary ms-1">
+        <i class="bi bi-arrow-left"></i>
+        Quay lại
+    </a>
+}
+
+<div class="row justify-content-center mt-3">
+    <div class="col-md-8">
+        <div class="card card-outline card-info shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold text-info">
+                    <i class="bi bi-image me-2"></i>@ViewBag.Title
+                </h5>
+            </div>
+
+            <div class="card-body p-4">
+                <form id="formEdit" action="~/Product/SavePhoto" method="post" enctype="multipart/form-data">
+                    @* Các trường ẩn bắt buộc *@
+                    <input type="hidden" asp-for="PhotoID" />
+                    <input type="hidden" asp-for="ProductID" />
+                    @* Trường ẩn Photo chứa chuỗi Base64 *@
+                    <input type="hidden" asp-for="Photo" />
+
+                    @* Hiển thị lỗi tổng quát nếu có *@
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Vui lòng kiểm tra lại thông tin ảnh.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="row mb-3 align-items-center">
+                        <label class="col-sm-3 fw-semibold">Chọn file ảnh</label>
+                        <div class="col-sm-9">
+                            <input type="file"
+                                   name="uploadPhoto"
+                                   class="form-control"
+                                   accept="image/*"
+                                   onchange="document.getElementById('imgPreview').src = window.URL.createObjectURL(this.files[0])" />
+                            <div class="form-text italic small mt-1 text-muted">Chọn ảnh để hệ thống tự động chuyển sang chuỗi dữ liệu.</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label class="col-sm-3 fw-semibold">Xem trước</label>
+                        <div class="col-sm-9">
+                            @{
+                                // Nếu Photo đã là chuỗi Base64 thì dùng trực tiếp, nếu không dùng ảnh nophoto mặc định
+                                string photoSrc = string.IsNullOrEmpty(Model.Photo)
+                                ? Url.Content("~/images/products/nophoto.png")
+                                : Model.Photo;
+                            }
+                            <img id="imgPreview"
+                                 src="@photoSrc"
+                                 class="img-thumbnail shadow-sm"
+                                 style="max-height:300px; min-width:150px; object-fit:contain;"
+                                 onerror="this.src='@Url.Content("~/images/products/nophoto.png")'" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label class="col-sm-3 fw-semibold" asp-for="Description">Mô tả ảnh</label>
+                        <div class="col-sm-9">
+                            <input type="text" asp-for="Description"
+                                   class="form-control"
+                                   placeholder="Ví dụ: Mặt trước, Mặt nghiêng, Ảnh hộp..."
+                                   autofocus />
+                            <span asp-validation-for="Description" class="text-danger small italic"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label class="col-sm-3 fw-semibold" asp-for="DisplayOrder">Thứ tự hiển thị</label>
+                        <div class="col-sm-3">
+                            <input type="number"
+                                   asp-for="DisplayOrder"
+                                   class="form-control"
+                                   min="1" />
+                            <span asp-validation-for="DisplayOrder" class="text-danger small italic"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <label class="col-sm-3 fw-semibold">Trạng thái</label>
+                        <div class="col-sm-9">
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       asp-for="IsHidden"
+                                       id="IsHidden" />
+                                <label class="form-check-label text-dark fw-medium" for="IsHidden">
+                                    Ẩn ảnh này khỏi trang bán hàng
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            @if (Model.PhotoID > 0)
+            {
+                <div class="card-footer bg-light text-center py-2">
+                    <small class="text-muted">Đang sử dụng dữ liệu chuỗi cho ảnh mã số: <strong>#@Model.PhotoID</strong></small>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .italic {
+        font-style: italic;
+    }
+
+    .card-outline.card-info {
+        border-top: 3px solid #0dcaf0;
+    }
+
+    .img-thumbnail {
+        transition: all .3s ease;
+        background-color: #f8f9fa;
+    }
+
+        .img-thumbnail:hover {
+            transform: scale(1.01);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+        }
+
+    .text-danger.small.italic {
+        display: block;
+        margin-top: 5px;
+    }
+</style>

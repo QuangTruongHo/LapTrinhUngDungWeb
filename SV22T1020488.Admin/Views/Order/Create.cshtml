@@ -1,0 +1,431 @@
+﻿@model ProductSearchInput
+@{
+    ViewBag.Title = "Lập đơn hàng";
+}
+
+<div class="row">
+    <!-- Tìm kiếm & chọn mặt hàng -->
+    <div class="col-4">
+        <div class="card card-outline card-primary h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-search"></i>
+                    Lựa chọn hàng cần bán
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <!-- Search -->
+                <form id="formSearch"
+                      method="get"
+                      action="~/Order/SearchProduct"
+                      data-target="searchResult"
+                      onsubmit="paginationSearch(event, this, 1)">
+                    <input type="hidden" asp-for="PageSize" />
+
+                    <div class="input-group">
+                        <input type="text" asp-for="SearchValue"
+                               class="form-control"
+                               placeholder="Nhập tên mặt hàng..." autofocus />
+                        <button class="btn btn-info d-flex align-items-center">
+                            <i class="bi bi-search me-1"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="card-body">
+                    <div id="searchResult"></div>
+                </div>
+                <!-- Danh sách mặt hàng -->
+                
+            </div>
+
+            
+        </div>
+    </div>
+
+    <!-- Giỏ hàng và thông tin khách hàng -->
+    <div class="col-8">
+        <!-- Giỏ hàng -->
+        <div class="row">
+            <div class="col-12" id="cart">
+                
+            </div>
+        </div>
+        <!-- Thông tin khách hàng và nơi giao hàng -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card card-outline card-info">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person"></i>
+                            Thông tin khách hàng & nơi giao hàng
+                        </h5>
+                    </div>
+
+                    <div class="card-body">
+                        <form id="formOrder" method="post" action="~/Order/CreateOrder" onsubmit="createOrder(event, this)">
+                            <div class="row mb-3">
+                                <label class="col-md-2 col-form-label">Khách hàng</label>
+                                <div class="col-md-10">
+                                    <select class="form-select select2-customer" name="customerID"
+                                            asp-items="await SelectListHelper.Customers()">
+                                        <option>-- Chọn khách hàng --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label class="col-md-2 col-form-label">Tỉnh/thành</label>
+                                <div class="col-md-10">
+                                    <select class="form-select" name="province" asp-items="await SelectListHelper.Provinces()">
+                                        <option>-- Chọn Tỉnh/thành giao hàng --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label class="col-md-2 col-form-label">Địa chỉ</label>
+                                <div class="col-md-10">
+                                    <textarea class="form-control" name="address"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i>
+                                    Lập đơn hàng
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            showCart();
+            paginationSearch(null, document.getElementById("formSearch"), @Model.Page);
+        });
+
+                /**
+         * Gọi API hiển thị giỏ hàng và đắp kết quả vào HTML
+         */
+        function showCart() {
+            // 1. Sử dụng fetch với phương thức GET (mặc định của fetch là GET)
+            fetch('/Order/ShowCart', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Gợi ý cho server đây là yêu cầu Ajax
+                }
+            })
+            .then(response => {
+                // 2. Kiểm tra nếu phản hồi từ server thành công (status 200-299)
+                if (!response.ok) {
+                    throw new Error('Không thể tải dữ liệu giỏ hàng');
+                }
+                // Giả định API trả về chuỗi HTML (Partial View)
+                return response.text();
+            })
+            .then(html => {
+                // 3. Hiển thị kết quả vào thẻ có id="cart"
+                const cartElement = document.getElementById('cart');
+                if (cartElement) {
+                    cartElement.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                // 4. Xử lý lỗi nếu có (lỗi mạng hoặc server)
+                console.error('Lỗi khi gọi showCart:', error);
+                const cartElement = document.getElementById('cart');
+                if (cartElement) {
+                    cartElement.innerHTML = '<div class="text-danger">Có lỗi xảy ra khi tải giỏ hàng.</div>';
+                }
+            });
+        }
+
+
+        function paginationSearch(event, form, page) {
+            if (event) event.preventDefault();
+            const target = form.getAttribute("data-target") || "searchResult";
+            const url = form.getAttribute("action");
+            const searchValue = form.querySelector('input[name="SearchValue"]').value;
+            const pageSize = form.querySelector('input[name="PageSize"]').value;
+
+            fetch(`${url}?SearchValue=${encodeURIComponent(searchValue)}&Page=${page}&PageSize=${pageSize}`, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const container = document.getElementById(target);
+                if (container) container.innerHTML = html;
+            })
+            .catch(error => console.error("Lỗi tìm kiếm:", error));
+        }
+
+
+        
+        function addCartItem(event, form) {
+            // 1. Ngăn chặn trình duyệt reload trang theo mặc định của form
+            event.preventDefault();
+
+            // 2. Lấy URL từ thuộc tính action của form hoặc dùng mặc định
+            const url = form.getAttribute('action') || '/Order/AddCartItem';
+
+            // 3. Thu thập dữ liệu từ các input trong form (ProductID, Quantity, v.v.)
+            const formData = new FormData(form);
+
+            // 4. Gửi yêu cầu POST đến Server
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mất kết nối với máy chủ');
+                }
+                // Phản hồi trả về là JSON { "code": 0/1, "message": "..." }
+                return response.json();
+            })
+            .then(data => {
+                // 5. Kiểm tra kết quả từ Server
+                if (data.code === 0) {
+                    // Hiển thị thông báo lỗi (thường dùng alert hoặc toast)
+                    alert("Lỗi: " + data.message);
+                } else {
+                    // Nếu thành công (code != 0), gọi hàm showCart để cập nhật giao diện giỏ hàng
+                    if (typeof showCart === "function") {
+                        showCart();
+                    } else {
+                        console.warn("Hàm showCart chưa được định nghĩa.");
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gọi addCartItem:', error);
+                alert('Có lỗi xảy ra, vui lòng thử lại sau.');
+            });
+
+            return false; // Thêm để đảm bảo form không submit truyền thống
+        }
+
+         
+        function deleteCartItem(productID) {
+         
+
+            // 2. Cấu hình URL kèm tham số Query String
+            const url = `/Order/DeleteCartItem?productID=${productID}`;
+
+            // 3. Gửi yêu cầu POST
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Không thể kết nối đến máy chủ để xóa mặt hàng.');
+                }
+                // Giả định API trả về JSON hoặc chỉ cần quan tâm trạng thái thành công
+                return response.json();
+            })
+            .then(data => {
+                // 4. Nếu xóa thành công (giả định code != 0 là thành công)
+                if (data.code !== 0) {
+                    // Gọi lại hàm showCart để cập nhật lại danh sách hiển thị
+                    if (typeof showCart === "function") {
+                        showCart();
+                    }
+                } else {
+                    alert("Lỗi: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gọi deleteCartItem:', error);
+                alert('Có lỗi xảy ra khi xóa mặt hàng.');
+            });
+        }
+
+                /**
+         * Xóa sạch toàn bộ giỏ hàng
+         */
+        function clearCart() {
+           
+            // 2. Gọi API xóa sạch giỏ hàng bằng phương thức POST
+            fetch('/Order/ClearCart', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Không thể kết nối đến máy chủ để làm sạch giỏ hàng.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 3. Kiểm tra kết quả trả về từ API
+                if (data.code !== 0) {
+                    // Nếu thành công, gọi showCart để làm mới vùng hiển thị (thường sẽ hiện "Giỏ hàng trống")
+                    if (typeof showCart === "function") {
+                        showCart();
+                    }
+                } else {
+                    alert("Lỗi: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gọi clearCart:', error);
+                alert('Có lỗi xảy ra khi làm sạch giỏ hàng.');
+            });
+        }
+
+
+        
+        function updateCartItem(event, form) {
+            // 1. Ngăn chặn trình duyệt reload trang
+            event.preventDefault();
+
+            // 2. Lấy URL từ thuộc tính action của form
+            const url = form.getAttribute('action');
+
+            // 3. Đóng gói dữ liệu từ form (ProductID, Quantity...)
+            const formData = new FormData(form);
+
+            // 4. Gửi yêu cầu POST đến API
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mất kết nối với máy chủ');
+                }
+                return response.json(); // Chuyển kết quả về dạng JSON
+            })
+            .then(data => {
+                // 5. Kiểm tra kết quả trả về (code và message)
+                if (data.code === 0) {
+                    // Hiển thị thông báo lỗi nếu code = 0
+                    alert("Lỗi: " + data.message);
+                } else {
+                    // Nếu thành công (code != 0):
+
+                    // A. Đóng Modal có id="dialogModal"
+                    const modalElement = document.getElementById('dialogModal');
+                    if (modalElement) {
+                        // Sử dụng API của Bootstrap 5 để đóng modal
+                        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        } else {
+                            // Dự phòng nếu instance chưa được khởi tạo (cho cả BS4)
+                            $(modalElement).modal('hide');
+                        }
+                    }
+
+                    // B. Gọi hàm showCart() để load lại danh sách giỏ hàng
+                    if (typeof showCart === "function") {
+                        showCart();
+                    } else {
+                        console.warn("Hàm showCart() chưa được định nghĩa.");
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gọi updateCartItem:', error);
+                alert('Có lỗi xảy ra khi cập nhật dữ liệu.');
+            });
+
+            return false;
+        }
+
+
+        
+        function createOrder(event, form) {
+            // 1. Ngăn chặn trình duyệt load lại trang
+            event.preventDefault();
+
+            // 2. Lấy URL từ action của form (hoặc mặc định /Order/CreateOrder)
+            const url = form.getAttribute('action') || '/Order/CreateOrder';
+
+            // 3. Đóng gói dữ liệu trong form
+            const formData = new FormData(form);
+
+            // 4. Gửi yêu cầu POST đến Server
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Mất kết nối với hệ thống máy chủ');
+                }
+                return response.json(); // Chuyển kết quả về JSON { "code": ..., "message": ..., "data": ... }
+            })
+            .then(data => {
+                // 5. Kiểm tra mã trả về (Logic: code = 0 là lỗi, ngược lại là thành công)
+                if (data.code === 0) {
+                    // Hiển thị thông báo lỗi (Ví dụ: Giỏ hàng trống, chưa chọn khách hàng...)
+                    alert("Lỗi: " + data.message);
+                } else {
+                    // Nếu thành công (code != 0), chuyển hướng đến trang chi tiết đơn hàng
+                    // Giả định API trả về ID đơn hàng mới trong trường data.message hoặc data.orderID
+                    // Ở đây ta dùng data.data (hoặc bạn có thể sửa theo cấu trúc API của bạn)
+                    const orderID = data.data;
+                    window.location.href = `/Order/Detail/${orderID}`;
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gọi createOrder:', error);
+                alert('Có lỗi xảy ra trong quá trình tạo đơn hàng. Vui lòng thử lại.');
+            });
+
+            return false;
+        }
+        //Gõ để timf kiếm khách hàng
+        $(document).ready(function () {
+            // Khởi tạo Select2 cho ô chọn khách hàng
+            $('select[name="customerID"]').select2({
+                placeholder: "-- Chọn khách hàng --",
+                allowClear: true,
+                width: '100%'
+            });
+
+            // Khởi tạo Select2 cho ô Tỉnh thành (nếu muốn gõ tìm kiếm)
+            $('select[name="province"]').select2({
+                placeholder: "-- Chọn Tỉnh/thành --",
+                width: '100%'
+            });
+
+            // Đảm bảo gọi lại các hàm khởi tạo khác của bạn
+            showCart();
+            paginationSearch(null, document.getElementById("formSearch"), @Model.Page);
+        });
+
+
+    </script>
+    
+}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>

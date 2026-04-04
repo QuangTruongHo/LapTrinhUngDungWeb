@@ -1,0 +1,159 @@
+﻿@using SV22T1020488.Admin
+@{
+    // Khởi tạo các biến kiểm tra quyền nhanh để dùng trong Layout nếu cần
+    bool isAdmin = User.IsInRole(WebUserRoles.Administrator);
+    bool isSales = User.IsInRole(WebUserRoles.Sales);
+    bool isData = User.IsInRole(WebUserRoles.DataManager);
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>@ViewBag.Title - LiteCommerce</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/adminlte/css/adminlte.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="layout-fixed fixed-header fixed-footer sidebar-expand-lg sidebar-open bg-body-tertiary">
+    <div class="app-wrapper">
+        @await Html.PartialAsync("_Header")
+
+        @* LƯU Ý QUAN TRỌNG: 
+           Logic ẩn/hiện các mục menu cụ thể (Nhân viên, Đơn hàng, Sản phẩm) 
+           phải được thực hiện bên trong file _Sidebar.cshtml bằng thẻ @if (User.IsInRole(...))
+        *@
+        @await Html.PartialAsync("_Sidebar")
+
+        <main class="app-main">
+            <div class="app-content-header">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <h5 class="mb-0">@ViewBag.Title</h5>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="input-group d-flex justify-content-end">
+                                @await RenderSectionAsync("PageToolBar", required: false)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-content">
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </div>
+        </main>
+
+        @await Html.PartialAsync("_Footer")
+    </div>
+
+    @* Nút cuộn lên đầu trang *@
+    <button id="scrollToTop" onclick="window.scrollTo(0,0)">
+        <i class="bi bi-arrow-up-circle"></i>
+    </button>
+
+    @* Modal chung cho toàn hệ thống *@
+    <div class="modal fade" id="dialogModal" tabindex="-1" aria-hidden="true" style="display:none;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                @* Nội dung sẽ được nạp động qua AJAX *@
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/flatpickr/flatpickr.min.js"></script>
+    <script src="~/lib/flatpickr/l10n/vn.js"></script>
+    <script src="~/lib/autonumeric/autonumeric.js"></script>
+    <script src="~/lib/bootstrap/bootstrap.bundle.min.js"></script>
+    <script type="module" src="~/lib/adminlte/js/adminlte.js"></script>
+    <script src="~/js/site.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Khởi tạo DatePicker
+            flatpickr(".date-picker", {
+                dateFormat: "d/m/Y",
+                locale: "vn",
+                allowInput: false
+            });
+
+            // Khởi tạo định dạng tiền tệ
+            document.querySelectorAll(".money-input").forEach(element => {
+                new AutoNumeric(element, {
+                    digitGroupSeparator: '.',
+                    decimalCharacter: ',',
+                    decimalPlaces: 0,
+                    unformatOnSubmit: true
+                });
+            });
+
+            // Lắng nghe sự kiện click để mở Modal
+            document.addEventListener("click", function (e) {
+                const target = e.target.closest(".open-modal");
+
+                if (target) {
+                    e.preventDefault();
+                    openModal(e, target);
+                }
+            });
+        });
+
+        // Hàm mở Modal và nạp dữ liệu từ href của thẻ <a>
+        function openModal(e, target) {
+            const url = target.getAttribute("href");
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error("Không thể tải dữ liệu");
+                    return response.text();
+                })
+                .then(html => {
+                    const modalContainer = document.getElementById('dialogModal');
+                    modalContainer.querySelector(".modal-content").innerHTML = html;
+                    const myModal = new bootstrap.Modal(modalContainer);
+                    myModal.show();
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Có lỗi xảy ra khi mở cửa sổ xác nhận.");
+                });
+        }
+
+        // Hàm xử lý gửi form AJAX
+        function formSubmit(form) {
+            const url = form.getAttribute("action");
+            const method = form.getAttribute("method");
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData);
+
+            fetch(url, {
+                method: method,
+                body: params,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.code === 1) {
+                    location.reload();
+                } else {
+                    alert(result.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Lỗi hệ thống khi thực hiện thao tác.");
+            });
+
+            return false;
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

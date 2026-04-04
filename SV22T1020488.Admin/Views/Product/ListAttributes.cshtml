@@ -1,0 +1,102 @@
+﻿@model IEnumerable<SV22T1020488.Models.Catalog.ProductAttribute>
+@{
+    Layout = null;
+}
+
+<div class="row justify-content-center">
+    <div class="col-12">
+        <div class="card card-success card-outline mt-4 shadow-sm">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 id="attributes" class="mb-0 fw-bold text-success">
+                            <i class="bi bi-list-check me-2"></i>
+                            Thuộc tính mặt hàng
+                        </h6>
+                    </div>
+                    <div class="col text-end">
+                        @* CẬP NHẬT: href gọi đến Action CreateAttributes (có s) *@
+                        <a class="btn btn-sm btn-success" href="~/Product/CreateAttributes/@ViewBag.ProductID?method=add">
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Thêm thuộc tính
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-1">
+                <table class="table table-bordered table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="align-middle">Tên thuộc tính</th>
+                            <th class="align-middle">Giá trị</th>
+                            <th style="width:120px" class="text-center align-middle">Thứ tự</th>
+                            <th style="width:100px" class="text-center align-middle">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold align-middle text-secondary">@item.AttributeName</td>
+                                    <td class="align-middle">@item.AttributeValue</td>
+                                    <td class="text-center align-middle">@item.DisplayOrder</td>
+                                    <td class="text-center text-nowrap align-middle">
+                                        @* CẬP NHẬT: Nút Sửa gọi đến CreateAttributes (có s) *@
+                                        <a class="btn btn-sm btn-outline-primary me-1"
+                                           title="Sửa thuộc tính"
+                                           href="~/Product/CreateAttributes/@item.ProductID?method=edit&attributeId=@item.AttributeID">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+
+                                        @* CẬP NHẬT: Nút Xóa gọi đến CreateAttributes (có s) *@
+                                        <a class="btn btn-sm btn-outline-danger"
+                                           title="Xóa thuộc tính"
+                                           href="~/Product/CreateAttributes/@item.ProductID?method=delete&attributeId=@item.AttributeID"
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa thuộc tính này?')">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    <i class="bi bi-info-circle d-block fs-2 mb-2"></i>
+                                    Mặt hàng này chưa có thuộc tính nào.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Đồng bộ với style của các bảng khác trong hệ thống */
+    .card-outline.card-success {
+        border-top: 3px solid #198754;
+    }
+
+    .table thead th {
+        border-top: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        font-size: 0.95rem;
+    }
+
+    .btn-outline-primary:hover, .btn-outline-danger:hover {
+        color: #fff;
+    }
+</style>

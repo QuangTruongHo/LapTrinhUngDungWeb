@@ -1,0 +1,49 @@
+﻿@{
+
+}
+@{
+
+}
+
+<div class="container-fluid pt-3">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">@ViewBag.Title</h5>
+        </div>
+        <form action="~/Category/Save" method="post" class="card-body">
+
+            <input type="hidden" name="CategoryID" value="@(ViewBag.CategoryID ?? 0)" />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tên danh mục:</label>
+                <input type="text"
+                       name="CategoryName"
+                       class="form-control"
+                       value="@ViewBag.CategoryName"
+                       placeholder="Nhập tên danh mục..."
+                       autofocus>
+                @if (ViewBag.Error != null)
+                {
+                    <small class="text-danger">@ViewBag.Error</small>
+                }
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Mô tả:</label>
+                <textarea name="Description"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Nhập mô tả ngắn...">@ViewBag.Description</textarea>
+            </div>
+
+            <div class="text-end border-top pt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Lưu dữ liệu
+                </button>
+                <a href="~/Category" class="btn btn-outline-secondary">
+                    Quay lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

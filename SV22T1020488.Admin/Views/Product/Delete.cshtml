@@ -1,0 +1,82 @@
+﻿@model Product
+@{
+    ViewBag.Title = "Xóa mặt hàng";
+    bool canDelete = ViewBag.CanDelete ?? false;
+}
+
+@section PageToolBar {
+    @if (canDelete)
+    {
+        <button type="submit" form="formDelete" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i> Xóa mặt hàng
+        </button>
+    }
+    <a href="~/Product" class="btn btn-secondary ms-1">
+        <i class="bi bi-arrow-left"></i> Quay lại
+    </a>
+}
+
+<div class="row justify-content-center">
+    <div class="col-12">
+        <div class="card @(canDelete ? "card-danger" : "card-warning") card-outline shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0 @(canDelete ? "text-danger" : "text-warning") fw-bold">
+                    <i class="bi @(canDelete ? "bi-exclamation-triangle-fill" : "bi-info-circle-fill") me-2"></i>
+                    @(canDelete ? "Xác nhận xóa mặt hàng" : "Thông báo hệ thống")
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <form id="formDelete" asp-action="Delete" asp-route-id="@Model.ProductID" method="post">
+
+                    @if (canDelete)
+                    {
+                        <div class="alert alert-warning d-flex align-items-center mb-4">
+                            <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+                            <div>
+                                <strong>Cảnh báo:</strong> Hành động này sẽ xóa vĩnh viễn mặt hàng <strong>@Model.ProductName</strong> cùng với toàn bộ ảnh và thuộc tính liên quan. Bạn có chắc chắn không?
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger d-flex align-items-center mb-4">
+                            <i class="bi bi-slash-circle-fill me-2 fs-5"></i>
+                            <div>
+                                <strong>Không thể xóa:</strong> Mặt hàng này đã tồn tại trong các đơn hàng của hệ thống. Để đảm bảo tính toàn vẹn dữ liệu kế toán, bạn không được phép xóa mặt hàng này.
+                            </div>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-3 text-center border-end">
+                            @* Xử lý hiển thị ảnh mặt hàng *@
+                            <img src="~/@(string.IsNullOrEmpty(Model.Photo) ? "images/products/nophoto.png" : Model.Photo)"
+                                 class="img-fluid rounded shadow-sm border"
+                                 style="max-height: 200px"
+                                 alt="@Model.ProductName" />
+                        </div>
+                        <div class="col-md-9">
+                            <dl class="row mb-0 ps-3">
+                                <dt class="col-sm-4">Tên mặt hàng</dt>
+                                <dd class="col-sm-8 fw-bold text-primary">@Model.ProductName</dd>
+
+                                <dt class="col-sm-4">Đơn vị tính</dt>
+                                <dd class="col-sm-8">@Model.Unit</dd>
+
+                                <dt class="col-sm-4">Giá bán hiện tại</dt>
+                                <dd class="col-sm-8 text-danger fw-bold">@Model.Price.ToString("N0") VNĐ</dd>
+
+                                <dt class="col-sm-4">Mô tả</dt>
+                                <dd class="col-sm-8 text-muted">@(string.IsNullOrEmpty(Model.ProductDescription) ? "(Không có mô tả)" : Model.ProductDescription)</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    @* Hiển thị lỗi ModelOnly nếu có lỗi phát sinh từ Controller *@
+                    <div asp-validation-summary="ModelOnly" class="text-danger mt-3 small"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

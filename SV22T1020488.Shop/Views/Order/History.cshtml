@@ -1,0 +1,35 @@
+﻿@using SV22T1020488.Models.Sales
+@model IEnumerable<Order>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Mã đơn</th>
+            <th>Ngày đặt</th>
+            <th>Trạng thái</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.OrderID</td>
+                <td>@item.OrderTime.ToString("dd/MM/yyyy")</td>
+                <td>
+                    @* Dùng logic số nguyên bạn đã làm *@
+                    @if ((int)item.Status == 1)
+                    {
+                        <span>Chờ duyệt</span>
+                    }
+                    else if ((int)item.Status == 4)
+                    {
+
+                        <span class="text-success">Thành công</span>
+                    }
+                </td>
+                <td><a href="~/Order/Details/@item.OrderID">Xem chi tiết</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,113 @@
+﻿@model IEnumerable<SV22T1020488.Models.Catalog.Product>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var item in Model)
+    {
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4 product-item">
+            <div class="card h-100 border-0 shadow-sm card-product">
+                <div class="text-center p-3 product-img-container">
+                    <img src="~/images/products/@(string.IsNullOrEmpty(item.Photo) ? "no-image.jpg" : item.Photo)"
+                         class="img-fluid product-img"
+                         style="height: 180px; object-fit: contain;">
+                </div>
+
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title text-truncate fw-bold">@item.ProductName</h6>
+                    <p class="text-danger fw-bold fs-5">@item.Price.ToString("N0") VNĐ</p>
+
+                    <div class="mt-auto d-grid">
+                        <button type="button"
+                                class="btn btn-primary btn-sm btn-add-to-cart"
+                                data-id="@item.ProductID">
+                            <i class="bi bi-gift me-1"></i> Thêm vào giỏ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@* Viết Script ngay tại View này hoặc đưa vào site.js *@
+<script>
+    $(document).ready(function () {
+        // Lắng nghe sự kiện click vào nút "Thêm vào giỏ"
+        $('.btn-add-to-cart').click(function (e) {
+            e.preventDefault(); // Ngăn chặn hành vi mặc định
+
+            var productId = $(this).data('id'); // Lấy ID sản phẩm
+            var $btn = $(this); // Nút được click
+            // Tìm container chứa sản phẩm để lấy ảnh xuất phát
+            var $productItem = $btn.closest('.product-item');
+            var $productImg = $productItem.find('.product-img');
+
+            // --- Phần 1: Gọi Ajax để thêm vào giỏ hàng ngầm ---
+            $.ajax({
+                url: '/Cart/AddToCartAjax', // Đường dẫn tới Action Ajax
+                type: 'POST',
+                data: { id: productId, quantity: 1 }, // Gửi ID sản phẩm
+                success: function (response) {
+                    if (response.success) {
+                        // --- Phần 2: Khởi chạy hiệu ứng hộp quà bay ---
+                        // 1. Xác định vị trí icon giỏ hàng trên Header (Điểm đến)
+                        var $cartIcon = $('#cart-icon');
+                        if ($cartIcon.length === 0) return; // Không tìm thấy giỏ hàng
+
+                        var cartOffset = $cartIcon.offset();
+                        var cartX = cartOffset.left;
+                        var cartY = cartOffset.top;
+
+                        // 2. Xác định vị trí ảnh sản phẩm (Điểm xuất phát)
+                        // Chúng ta lấy vị trí của ảnh để hộp quà bay ra từ tâm ảnh
+                        var imgOffset = $productImg.offset();
+                        var imgX = imgOffset.left + ($productImg.width() / 2);
+                        var imgY = imgOffset.top + ($productImg.height() / 2);
+
+                        // 3. Tạo thẻ div "Hộp quà" bay
+                        var $giftBox = $('<div class="fly-gift-box"></div>');
+                        $giftBox.css({
+                            left: imgX + 'px',
+                            top: imgY + 'px',
+                            transform: 'translate(-50%, -50%) scale(1)' // Căn tâm hộp quà
+                        });
+                        $('body').append($giftBox); // Thêm vào body để bay tự do
+
+                        // 4. Thực hiện bay (Sử dụng setTimeout để CSS kịp nhận vị trí ban đầu)
+                        setTimeout(function () {
+                            // Cập nhật vị trí mới (đến giỏ hàng) và thêm class shrinking để thu nhỏ
+                            $giftBox.css({
+                                left: cartX + 'px',
+                                top: (cartY + 20) + 'px' // Hạ thấp một chút để giống bay vào miệng giỏ
+                            }).addClass('shrinking');
+                        }, 50);
+
+                        // 5. Xử lý sau khi bay xong (sau 1 giây - khớp với thời gian transition CSS)
+                        setTimeout(function () {
+                            $giftBox.remove(); // Xóa hộp quà khỏi màn hình
+
+                            // Thêm hiệu ứng lắc nhẹ cho icon giỏ hàng để thông báo đã nhận
+                            $cartIcon.addClass('bi-cart3-fill text-warning').removeClass('bi-cart3');
+
+                            // Cập nhật số lượng Badge giỏ hàng
+                            $('#cart-count').text(response.totalItems).addClass('bg-success').removeClass('bg-danger');
+
+                            // Xóa hiệu ứng lắc sau 0.5s
+                            setTimeout(function(){
+                                $cartIcon.removeClass('bi-cart3-fill text-warning').addClass('bi-cart3');
+                                $('#cart-count').removeClass('bg-success').addClass('bg-danger');
+                            }, 500);
+
+                        }, 1000); // 1000ms = 1 giây bay
+
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('Không thể kết nối tới server. Vui lòng thử lại.');
+                }
+            });
+        });
+    });
+</script>

@@ -1,0 +1,105 @@
+﻿@model IEnumerable<SV22T1020488.Models.Catalog.Product>
+@{
+    var input = ViewBag.SearchInput as SV22T1020488.Shop.Models.ShopSearchInput;
+}
+
+<div class="row">
+    <div class="col-md-3">
+        <form action="~/Product" method="get">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white fw-bold">Tìm kiếm</div>
+                <div class="card-body">
+                    <input type="text" name="SearchValue" class="form-control mb-3"
+                           placeholder="Tên hàng..." value="@input?.SearchValue">
+
+                    <select name="CategoryID" class="form-select mb-3">
+                        <option value="0">-- Loại hàng --</option>
+                        @foreach (var c in ViewBag.Categories)
+                        {
+                            <option value="@c.CategoryID" selected="@(c.CategoryID == input?.CategoryID)">
+                                @c.CategoryName
+                            </option>
+                        }
+                    </select>
+
+                    <button type="submit" class="btn btn-primary w-100">Lọc</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-9">
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                @* Thêm class 'product-item' để định vị cụm sản phẩm *@
+                <div class="col-md-4 mb-4 product-item">
+                    <div class="card card-product h-100 shadow-sm border-0">
+                        @* Thêm class 'product-img' để làm điểm xuất phát cho hộp quà *@
+                        <img src="~/images/products/@(string.IsNullOrEmpty(item.Photo) ? "no-image.jpg" : item.Photo)"
+                             class="card-img-top product-img" style="height:180px; object-fit:cover;">
+
+                        <div class="card-body text-center">
+                            <h6 class="fw-bold">@item.ProductName</h6>
+                            <p class="text-danger fw-bold">@item.Price.ToString("N0") VNĐ</p>
+
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="~/Product/Details/@item.ProductID" class="btn btn-outline-primary btn-sm">Chi tiết</a>
+
+                                @* CHỈNH SỬA TẠI ĐÂY: Loại bỏ form, dùng button với class xử lý Ajax *@
+                                <button type="button"
+                                        class="btn btn-success btn-sm btn-add-to-cart"
+                                        data-id="@item.ProductID">
+                                    Thêm giỏ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Lắng nghe sự kiện click vào nút "Thêm giỏ"
+            $('.btn-add-to-cart').click(function (e) {
+                e.preventDefault();
+
+                let btn = $(this);
+                let productId = btn.data('id');
+
+                // Tìm ảnh sản phẩm nằm trong cùng khung 'product-item' với nút vừa bấm
+                let imgToFly = btn.closest('.product-item').find('.product-img');
+
+                // Gửi yêu cầu Ajax lên Controller
+                $.ajax({
+                    url: '/Cart/AddToCart',
+                    type: 'POST',
+                    data: { id: productId, quantity: 1 },
+                    success: function (response) {
+                        if (response.success) {
+                            // 1. Kích hoạt hiệu ứng bay (hàm này nằm trong _Layout)
+                            if (typeof doFlyToCart === "function") {
+                                doFlyToCart(imgToFly);
+                            }
+
+                            // 2. Cập nhật số lượng trên Badge giỏ hàng
+                            // Đợi 0.8 giây cho hộp quà bay gần tới rồi mới đổi số
+                            setTimeout(function () {
+                                $('#cart-count').text(response.totalItems);
+                            }, 800);
+                        } else {
+                            alert(response.message || "Không thể thêm sản phẩm vào giỏ hàng.");
+                        }
+                    },
+                    error: function () {
+                        alert("Lỗi kết nối đến hệ thống.");
+                    }
+                });
+            });
+        });
+    </script>
+}

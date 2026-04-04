@@ -1,0 +1,130 @@
+﻿@using SV22T1020488.BusinessLayers
+@using SV22T1020488.Models.Catalog
+@using SV22T1020488.Models.Common
+@model ProductSearchInput
+
+@{
+    ViewBag.Title = "Quản lý Mặt hàng";
+}
+
+@section PageToolBar {
+    <a href="~/Product/Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Bổ sung
+    </a>
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        @* QUAN TRỌNG: data-target="searchResult" khớp với ID của thẻ div chứa danh sách.
+            Hàm paginationSearch trong site.js sẽ sử dụng thuộc tính này.
+        *@
+        <form id="formSearch"
+              action="@Url.Action("Search", "Product")"
+              method="get"
+              data-target="searchResult">
+
+            <div class="row g-2">
+                @* 1. Lọc theo Loại hàng sử dụng SelectListHelper *@
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Loại hàng</label>
+                    <select class="form-select" name="@nameof(Model.CategoryID)"
+                            asp-items="@(await SelectListHelper.Categories())">
+                    </select>
+                </div>
+
+                @* 2. Lọc theo Nhà cung cấp sử dụng SelectListHelper *@
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Nhà cung cấp</label>
+                    <select class="form-select" name="@nameof(Model.SupplierID)"
+                            asp-items="@(await SelectListHelper.Suppliers())">
+                    </select>
+                </div>
+
+                @* 3. Lọc theo Khoảng giá *@
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Khoảng giá</label>
+                    <div class="input-group">
+                        <input type="text" name="@nameof(Model.MinPrice)"
+                               value="@Model.MinPrice.ToString("N0")"
+                               class="form-control money-input text-end" placeholder="Từ" />
+                        <span class="input-group-text">-</span>
+                        <input type="text" name="@nameof(Model.MaxPrice)"
+                               value="@Model.MaxPrice.ToString("N0")"
+                               class="form-control money-input text-end" placeholder="Đến" />
+                    </div>
+                </div>
+
+                @* 4. Tìm kiếm theo tên *@
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Tên mặt hàng</label>
+                    <div class="input-group">
+                        <input type="text" name="@nameof(Model.SearchValue)"
+                               value="@Model.SearchValue" class="form-control"
+                               placeholder="Tên mặt hàng..." autofocus />
+                        <button type="submit" class="btn btn-info text-white">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            @* Duy trì PageSize hiện tại *@
+            <input type="hidden" name="@nameof(Model.PageSize)" value="@Model.PageSize" />
+        </form>
+    </div>
+</div>
+
+@* Nơi chứa kết quả trả về từ PartialView Search *@
+<div id="searchResult">
+    <div class="text-center p-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var formSearch = document.getElementById("formSearch");
+
+            if (formSearch) {
+                // 1. CHẶN SUBMIT MẶC ĐỊNH VÀ XỬ LÝ DỮ LIỆU TIỀN TỆ TRƯỚC KHI GỬI
+                formSearch.addEventListener("submit", function (e) {
+                    e.preventDefault();
+
+                    // LÀM SẠCH DẤU PHẨY:
+                    // Duyệt qua các input giá tiền, xóa dấu phẩy để Server parse được decimal
+                    var moneyInputs = formSearch.querySelectorAll('.money-input');
+                    moneyInputs.forEach(function(input) {
+                        var rawValue = input.value.replace(/,/g, '');
+                        input.value = rawValue;
+                    });
+
+                    if (typeof paginationSearch === "function") {
+                        paginationSearch(e, this, 1);
+                    }
+                });
+
+                // 2. TỰ ĐỘNG LOAD DỮ LIỆU LẦN ĐẦU
+                if (typeof paginationSearch === "function") {
+                    paginationSearch(null, formSearch, @Model.Page);
+                }
+            }
+
+            // 3. ĐỊNH DẠNG DẤU PHẨY KHI NGƯỜI DÙNG NHẬP GIÁ (UX)
+            $(document).on("input", ".money-input", function() {
+                var value = $(this).val().replace(/\D/g, "");
+                $(this).val(value.replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+            });
+        });
+
+        // Hàm chuyển trang cho các nút phân trang
+        function doSearch(page) {
+            var form = document.getElementById("formSearch");
+            if (form && typeof paginationSearch === "function") {
+                paginationSearch(null, form, page);
+            }
+        }
+    </script>
+}

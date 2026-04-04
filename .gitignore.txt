@@ -1,0 +1,17 @@
+## Chặn các thư mục biên dịch của .NET
+[Bb]in/
+[Oo]bj/
+
+## Chặn các file cấu hình tạm của Visual Studio
+.vs/
+.user/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Chặn file cấu hình chứa mật khẩu cá nhân (nếu có)
+appsettings.Development.json
+
+## Chặn các file log
+*.log

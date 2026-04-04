@@ -1,0 +1,67 @@
+﻿@model Shipper
+@{
+    ViewBag.Title = "Xóa người giao hàng";
+    bool canDelete = ViewBag.CanDelete ?? false;
+}
+
+@section PageToolBar {
+    @if (canDelete)
+    {
+        @* Nút Xóa chỉ xuất hiện khi có thể xóa *@
+        <button type="submit" form="formDelete" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i> Xóa người giao hàng
+        </button>
+    }
+    <a href="~/Shipper" class="btn btn-secondary ms-1">
+        <i class="bi bi-arrow-left"></i> Quay lại
+    </a>
+}
+
+<div class="row justify-content-center">
+    <div class="col-12">
+        @* Đổi màu viền Card dựa trên khả năng xóa *@
+        <div class="card @(canDelete ? "card-danger" : "card-warning") card-outline shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0 @(canDelete ? "text-danger" : "text-warning") fw-bold">
+                    <i class="bi @(canDelete ? "bi-exclamation-triangle" : "bi-info-circle") me-2"></i>
+                    @(canDelete ? "Xác nhận xóa người giao hàng" : "Thông báo hệ thống")
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <form id="formDelete" asp-action="Delete" asp-route-id="@Model.ShipperID" method="post">
+
+                    @if (canDelete)
+                    {
+                        <div class="alert alert-warning d-flex align-items-center mb-4">
+                            <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+                            <div>
+                                Bạn có chắc chắn muốn xóa đơn vị vận chuyển <strong>@Model.ShipperName</strong> không?
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger d-flex align-items-center mb-4">
+                            <i class="bi bi-slash-circle-fill me-2 fs-5"></i>
+                            <div>
+                                <strong>Không thể xóa:</strong> Đơn vị vận chuyển này đã thực hiện giao các đơn hàng trong hệ thống nên không được phép xóa dữ liệu.
+                            </div>
+                        </div>
+                    }
+
+                    <dl class="row mb-0 ps-2">
+                        <dt class="col-sm-4">Tên người giao hàng</dt>
+                        <dd class="col-sm-8 fw-bold text-primary">@Model.ShipperName</dd>
+
+                        <dt class="col-sm-4">Điện thoại</dt>
+                        <dd class="col-sm-8">@Model.Phone</dd>
+                    </dl>
+
+                    @* Hiển thị thông báo lỗi từ ModelState nếu xóa thất bại *@
+                    <div asp-validation-summary="ModelOnly" class="text-danger mt-3 small"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

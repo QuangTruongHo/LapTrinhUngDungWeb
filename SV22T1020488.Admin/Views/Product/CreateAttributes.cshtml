@@ -1,0 +1,64 @@
+﻿@model SV22T1020488.Models.Catalog.ProductAttribute
+@{
+    // Thiết lập tiêu đề trang nếu Controller chưa gán kịp
+    ViewBag.Title = Model.AttributeID == 0 ? "Thêm thuộc tính cho mặt hàng" : "Chỉnh sửa thuộc tính mặt hàng";
+}
+
+<div class="row justify-content-center mt-3">
+    <div class="col-md-8">
+        <div class="card card-success card-outline">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-check me-2"></i> @ViewBag.Title
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Sản phẩm: <strong class="text-primary">@ViewBag.ProductName</strong>
+                </p>
+
+                @* Form gửi dữ liệu đến Action SaveAttribute trong ProductController *@
+                <form action="~/Product/SaveAttribute" method="post">
+                    @* Các trường ẩn để định danh đối tượng *@
+                    <input type="hidden" asp-for="AttributeID" />
+                    <input type="hidden" asp-for="ProductID" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên thuộc tính</label>
+                        <input type="text" asp-for="AttributeName" class="form-control"
+                               placeholder="Ví dụ: RAM, Màu sắc, Chất liệu..." autofocus />
+                        <span asp-validation-for="AttributeName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Giá trị thuộc tính</label>
+                        <input type="text" asp-for="AttributeValue" class="form-control"
+                               placeholder="Ví dụ: 16GB, Xanh dương, Cotton..." />
+                        <span asp-validation-for="AttributeValue" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Thứ tự hiển thị</label>
+                        <input type="number" asp-for="DisplayOrder" class="form-control" min="1" />
+                        <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+                    </div>
+
+                    @* Hiển thị lỗi tổng quát nếu có *@
+                    <div class="mb-3">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    </div>
+
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Lưu thuộc tính
+                        </button>
+                        @* Nút hủy bỏ sẽ quay lại trang Edit của sản phẩm tương ứng *@
+                        <a href="~/Product/Edit/@Model.ProductID" class="btn btn-secondary ms-1">
+                            Hủy bỏ
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

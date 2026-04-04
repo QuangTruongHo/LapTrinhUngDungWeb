@@ -1,0 +1,30 @@
+﻿@using SV22T1020488.Models.Catalog
+@* DÒNG QUAN TRỌNG: Khai báo Model để tránh lỗi dynamic *@
+@model IEnumerable<Product>
+
+@{
+    ViewBag.Title = "Trang chủ Cửa hàng";
+}
+
+<div class="p-5 mb-4 bg-light rounded-3 shadow-sm" style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/images/banner.jpg') no-repeat center; background-size: cover; min-height: 350px;">
+    <div class="container-fluid py-5 text-white text-center">
+        <h1 class="display-4 fw-bold">Mua sắm thả ga</h1>
+        <p class="fs-4">Chào mừng bạn đến với hệ thống bán hàng trực tuyến chất lượng cao.</p>
+        <a href="~/Product" class="btn btn-warning btn-lg px-5 fw-bold shadow">Xem sản phẩm ngay</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+        <h3 class="mb-0">Sản phẩm mới nhất</h3>
+        <a href="~/Product" class="text-decoration-none">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="row">
+        @* SỬA LỖI: Đảm bảo truyền dữ liệu đúng kiểu IEnumerable<Product> *@
+        @{
+            var displayList = Model ?? new List<Product>();
+        }
+        @await Html.PartialAsync("../Product/SearchResult", displayList)
+    </div>
+</div>

@@ -1,0 +1,83 @@
+﻿@model SV22T1020488.Models.Catalog.ProductPhoto
+@{
+    // Tiêu đề được lấy từ ViewBag do Controller thiết lập
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-image me-2"></i> @ViewBag.Title
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Sản phẩm: <strong>@ViewBag.ProductName</strong></p>
+
+                <form action="~/Product/SavePhoto" method="post">
+                    <input type="hidden" asp-for="PhotoID" />
+                    <input type="hidden" asp-for="ProductID" />
+                    @* Hidden field lưu chuỗi Base64 gửi lên Server *@
+                    <input type="hidden" asp-for="Photo" id="PhotoData" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn ảnh</label>
+                        <input type="file" id="filePicker" class="form-control" accept="image/*" onchange="convertToBase64()" />
+
+                        <div class="mt-3 text-center">
+                            <img id="imgPreview"
+                                 src="@(string.IsNullOrEmpty(Model.Photo) ? Url.Content("~/images/products/nophoto.png") : Model.Photo)"
+                                 class="img-thumbnail"
+                                 style="max-height: 250px; border: 2px dashed #dee2e6;" />
+                        </div>
+                        <span asp-validation-for="Photo" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả ảnh (vị trí, góc chụp...)</label>
+                        <input type="text" asp-for="Description" class="form-control" placeholder="Nhập mô tả ảnh" autofocus />
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Thứ tự hiển thị</label>
+                            <input type="number" asp-for="DisplayOrder" class="form-control" min="1" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Trạng thái</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" asp-for="IsHidden" id="IsHidden" />
+                                <label class="form-check-label" for="IsHidden">Tạm ẩn ảnh này</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Lưu ảnh
+                        </button>
+                        <a href="~/Product/Edit/@Model.ProductID" class="btn btn-secondary">
+                            Hủy bỏ
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function convertToBase64() {
+        var file = document.getElementById('filePicker').files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onloadend = function () {
+                var base64String = reader.result;
+                document.getElementById('PhotoData').value = base64String;
+                document.getElementById('imgPreview').src = base64String;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+</script>

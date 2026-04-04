@@ -1,0 +1,130 @@
+﻿@model SV22T1020488.Models.Catalog.ProductAttribute
+@{
+    ViewBag.Title = Model.AttributeID == 0 ? "Thêm thuộc tính mặt hàng" : "Chỉnh sửa thuộc tính mặt hàng";
+}
+
+@section PageToolBar {
+    <button type="submit" form="formEdit" class="btn btn-primary">
+        <i class="bi bi-save"></i>
+        Lưu thuộc tính
+    </button>
+
+    @* Quay lại tab attributes của trang Edit sản phẩm bằng Anchor *@
+    <a href="~/Product/Edit/@Model.ProductID#attributes" class="btn btn-secondary ms-1">
+        <i class="bi bi-arrow-left"></i>
+        Quay lại
+    </a>
+}
+
+<div class="row justify-content-center mt-3">
+    <div class="col-md-8">
+        <div class="card card-outline card-success shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold text-success">
+                    <i class="bi bi-tag me-2"></i>@ViewBag.Title
+                </h5>
+            </div>
+
+            <div class="card-body p-4">
+                <form id="formEdit" action="~/Product/SaveAttribute" method="post">
+                    @* Các trường ẩn để định danh dữ liệu *@
+                    <input type="hidden" asp-for="AttributeID" />
+                    <input type="hidden" asp-for="ProductID" />
+
+                    @* Hiển thị lỗi tổng quát từ ModelState nếu có *@
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>Lỗi dữ liệu!</strong> Vui lòng kiểm tra lại các trường thông tin bên dưới.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="row mb-3">
+                        <label class="col-sm-3 fw-semibold col-form-label" asp-for="AttributeName">
+                            Tên thuộc tính
+                        </label>
+                        <div class="col-sm-9">
+                            <input type="text"
+                                   asp-for="AttributeName"
+                                   class="form-control"
+                                   placeholder="Ví dụ: Màu sắc, Kích thước, Chất liệu..."
+                                   autofocus />
+                            <span asp-validation-for="AttributeName" class="text-danger small italic"></span>
+                            <div class="form-text small text-muted italic mt-1">Gợi ý: RAM, CPU, Dung lượng Pin, Xuất xứ...</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label class="col-sm-3 fw-semibold col-form-label" asp-for="AttributeValue">
+                            Giá trị thuộc tính
+                        </label>
+                        <div class="col-sm-9">
+                            <input type="text"
+                                   asp-for="AttributeValue"
+                                   class="form-control"
+                                   placeholder="Ví dụ: Đỏ, XL, 500g, 16GB..." />
+                            <span asp-validation-for="AttributeValue" class="text-danger small italic"></span>
+                            <div class="form-text small text-muted italic mt-1">Nội dung chi tiết tương ứng với tên thuộc tính.</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <label class="col-sm-3 fw-semibold col-form-label" asp-for="DisplayOrder">
+                            Thứ tự hiển thị
+                        </label>
+                        <div class="col-sm-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-sort-numeric-down"></i></span>
+                                <input type="number"
+                                       asp-for="DisplayOrder"
+                                       class="form-control"
+                                       min="1" />
+                            </div>
+                            <span asp-validation-for="DisplayOrder" class="text-danger small italic"></span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            @if (Model.AttributeID > 0)
+            {
+                <div class="card-footer bg-light text-center py-2">
+                    <small class="text-muted">
+                        Liên kết Sản phẩm: <strong>#@Model.ProductID</strong> |
+                        Mã thuộc tính: <strong>#@Model.AttributeID</strong>
+                    </small>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .italic {
+        font-style: italic;
+    }
+
+    /* Viền trên của card tương ứng với màu Success */
+    .card-outline.card-success {
+        border-top: 3px solid #198754;
+    }
+
+    .col-form-label {
+        padding-top: calc(.375rem + 1px);
+    }
+
+    /* Định dạng hiển thị lỗi Validation */
+    .text-danger.small.italic {
+        display: block;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+
+    /* Hiệu ứng focus cho form */
+    .form-control:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+    }
+</style>

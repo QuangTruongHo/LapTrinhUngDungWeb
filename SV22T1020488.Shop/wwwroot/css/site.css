@@ -1,0 +1,96 @@
+﻿/* Cấu hình cơ bản */
+html {
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    /* Đẩy margin bottom để không bị che bởi footer cố định (nếu có) */
+    margin-bottom: 60px;
+    background-color: #f8f9fa;
+}
+
+/* Tùy chỉnh hiệu ứng Focus cho các element của Bootstrap */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* --- HIỆU ỨNG HỘP QUÀ BAY (FLY TO CART) --- */
+
+/* 1. Lớp định dạng hộp quà khi đang bay */
+.fly-gift-box {
+    position: fixed;
+    z-index: 9999;
+    width: 40px;
+    height: 40px;
+    background-color: #ffc107; /* Màu vàng Gold */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-size: 20px;
+    pointer-events: none; /* Không cho phép click vào khi đang bay */
+    /* Hiệu ứng mượt mà cho tọa độ và kích thước */
+    transition: all 0.8s cubic-bezier(0.42, 0, 0.58, 1);
+}
+
+    /* Thêm icon hộp quà bằng Emoji hoặc Icon */
+    .fly-gift-box::after {
+        content: '🎁';
+        font-size: 24px;
+    }
+
+/* 2. Hiệu ứng rung giỏ hàng khi nhận được quà */
+@keyframes cart-bounce {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.4);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.cart-shake {
+    animation: cart-bounce 0.5s ease-in-out;
+    color: #ffca2c !important; /* Đổi màu icon giỏ hàng sang vàng sáng khi nhận hàng */
+}
+
+/* --- TÙY CHỈNH GIAO DIỆN CỬA HÀNG --- */
+.card-product {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+    .card-product:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    }
+
+.product-img-container {
+    background-color: #fff;
+    overflow: hidden;
+}
+
+.product-img {
+    transition: transform 0.5s ease;
+}
+
+.card-product:hover .product-img {
+    transform: scale(1.05);
+}

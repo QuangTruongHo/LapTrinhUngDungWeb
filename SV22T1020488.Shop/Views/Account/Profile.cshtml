@@ -1,0 +1,44 @@
+﻿@model SV22T1020488.Shop.Models.ChangePasswordModel
+@{
+    ViewBag.Title = "Thông tin cá nhân";
+
+    // Cách gọi an toàn nhất: dùng đầy đủ Namespace đã khai báo ở file C# trên
+    var userData = SV22T1020488.Shop.WebUserData.GetUserData(User) ?? new SV22T1020488.Shop.WebUserData();
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    @TempData["Message"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="info">
+                    <div class="card shadow-sm p-4">
+                        <h5 class="border-bottom pb-2 mb-4">Cập nhật thông tin</h5>
+                        <form action="~/Account/UpdateProfile" method="post">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tên đăng nhập / Email:</label>
+                                <input type="text" class="form-control bg-light" value="@userData.UserName" readonly>
+                                <small class="text-muted">Tên đăng nhập không thể thay đổi.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Họ và tên khách hàng:</label>
+                                <input type="text" name="DisplayName" class="form-control" value="@userData.DisplayName" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

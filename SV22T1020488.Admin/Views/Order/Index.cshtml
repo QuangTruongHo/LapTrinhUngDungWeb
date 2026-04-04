@@ -1,0 +1,110 @@
+﻿@model OrderSearchInput
+@{
+    ViewBag.Title = "Quản lý Đơn hàng";
+}
+
+@section PageToolBar {
+    <a href="~/Order/Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>
+        Lập đơn hàng mới
+    </a>
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form id="formSearch"
+              method="get"
+              action="~/Order/Search"
+              data-target="searchResult">
+
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <label class="form-label">Trạng thái đơn hàng</label>
+                    <select name="Status" class="form-select">
+                        <option value="0">-- Tất cả --</option>
+                        <option value="1">Đơn hàng vừa tạo</option>
+                        <option value="2">Đã duyệt (Chờ giao)</option>
+                        <option value="3">Đang giao hàng</option>
+                        <option value="4">Hoàn tất thành công</option>
+                        <option value="-1">Đã bị hủy</option>
+                        <option value="-2">Bị từ chối</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Thời gian lập đơn hàng</label>
+                    <div class="input-group">
+                        <input type="text" name="DateFrom"
+                               value="@(Model.DateFrom?.ToString("dd/MM/yyyy"))"
+                               class="form-control date-picker" placeholder="Từ ngày..." />
+                        <span class="input-group-text">-</span>
+                        <input type="text" name="DateTo"
+                               value="@(Model.DateTo?.ToString("dd/MM/yyyy"))"
+                               class="form-control date-picker" placeholder="...đến ngày" />
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <label class="form-label">Tên khách hàng</label>
+                    <div class="input-group">
+                        <input type="text"
+                               name="SearchValue"
+                               value="@Model.SearchValue"
+                               class="form-control"
+                               placeholder="Tên khách hàng..." autofocus />
+
+                        <button type="submit" class="btn btn-info d-flex align-items-center">
+                            <i class="bi bi-search me-1"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @* Quan trọng: Luôn phải có PageSize ẩn để đồng bộ với Backend *@
+            <input type="hidden" name="PageSize" value="@Model.PageSize" />
+        </form>
+    </div>
+</div>
+
+<div id="searchResult">
+    @* Kết quả Ajax sẽ đổ vào đây *@
+</div>
+
+@section Scripts {
+    <script>
+        // Sử dụng JavaScript thuần thay cho jQuery ($) để tránh lỗi "is not defined"
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // 1. Khởi tạo Datepicker (nếu bạn có dùng thư viện bootstrap-datepicker)
+            // Nếu dùng jQuery cho plugin này, hãy đảm bảo nó được bọc trong kiểm tra
+            if (typeof $ !== 'undefined' && $.fn.datepicker) {
+                $('.date-picker').datepicker({
+                    format: "dd/mm/yyyy",
+                    autoclose: true,
+                    todayHighlight: true
+                });
+            }
+
+            // 2. Tự động gọi tìm kiếm ngay khi trang load xong
+            var form = document.getElementById("formSearch");
+            if (form) {
+                paginationSearch(null, form, @Model.Page);
+            }
+
+            // 3. Xử lý sự kiện Submit form
+            if (form) {
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    paginationSearch(e, this, 1);
+                });
+            }
+        });
+
+        // Hàm hỗ trợ cho phân trang
+        function doSearch(page) {
+            var form = document.getElementById("formSearch");
+            if (form) {
+                paginationSearch(null, form, page);
+            }
+        }
+    </script>
+}

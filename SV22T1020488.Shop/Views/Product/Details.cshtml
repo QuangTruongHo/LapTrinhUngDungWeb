@@ -1,0 +1,73 @@
+﻿@model SV22T1020488.Models.Catalog.Product
+@{
+    ViewBag.Title = Model?.ProductName ?? "Chi tiết sản phẩm";
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-5 mb-4">
+            <div class="card border-0 shadow-sm p-2 text-center bg-white">
+                <img src="@Url.Content("~/images/products/" + (string.IsNullOrEmpty(Model?.Photo) ? "no-image.jpg" : Model.Photo))"
+                     class="img-fluid rounded shadow-sm"
+                     alt="@Model?.ProductName"
+                     style="max-height: 450px; width: 100%; object-fit: contain;"
+                     onerror="this.onerror=null;this.src='/images/products/no-image.jpg';">
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item"><a href="~/" class="text-decoration-none">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="~/Product" class="text-decoration-none">Sản phẩm</a></li>
+                    <li class="breadcrumb-item active">@Model?.ProductName</li>
+                </ol>
+            </nav>
+
+            <h1 class="fw-bold">@Model?.ProductName</h1>
+            <p class="text-muted small">Mã SP: #@Model?.ProductID | Đơn vị: @Model?.Unit</p>
+
+            <h2 class="text-danger fw-bold my-4">
+                @Model?.Price.ToString("N0") <small class="fs-6">VNĐ</small>
+            </h2>
+
+            <hr />
+
+            <div class="mb-4">
+                <h5 class="fw-bold">Mô tả sản phẩm:</h5>
+                <p class="text-secondary" style="white-space: pre-wrap;">
+                    @(string.IsNullOrEmpty(Model?.ProductDescription) ? "Đang cập nhật..." : Model.ProductDescription)
+                </p>
+            </div>
+
+            <form action="~/Cart/AddToCart" method="post" class="row g-3 align-items-center">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model?.ProductID">
+
+                <div class="col-auto">
+                    <div class="input-group" style="width: 140px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="changeQty(-1)">-</button>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" class="form-control text-center" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="changeQty(1)">+</button>
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary btn-lg px-4 shadow">
+                        <i class="bi bi-cart-plus me-2"></i> THÊM VÀO GIỎ HÀNG
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changeQty(val) {
+            let qty = document.getElementById('quantity');
+            let newVal = parseInt(qty.value) + val;
+            if (newVal >= 1) qty.value = newVal;
+        }
+    </script>
+}
