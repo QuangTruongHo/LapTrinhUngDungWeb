@@ -92,9 +92,11 @@ namespace SV22T1020488.Admin.Controllers
                     return View("Edit", data);
                 }
 
+                // XỬ LÝ ẢNH CHO SẢN PHẨM CHÍNH
                 if (uploadPhoto != null)
                 {
-                    string fileName = $"{DateTime.Now.Ticks}_{uploadPhoto.FileName}";
+                    // Tạo tên file ngắn dựa trên thời gian để không trùng lặp
+                    string fileName = $"{DateTime.Now.Ticks}_{Path.GetFileName(uploadPhoto.FileName)}";
                     string folder = Path.Combine(ApplicationContext.WWWRootPath, "images", "products");
 
                     if (!Directory.Exists(folder))
@@ -105,7 +107,14 @@ namespace SV22T1020488.Admin.Controllers
                     {
                         await uploadPhoto.CopyToAsync(stream);
                     }
-                    data.Photo = fileName;
+                    data.Photo = fileName; // Lưu tên file ngắn vào DB (Ví dụ: 6384..._hinh.jpg)
+                }
+                // Nếu không chọn ảnh mới (uploadPhoto == null) và trong trường data.Photo lại đang chứa chuỗi Base64 dài
+                // (do JavaScript ở View gán vào), thì ta phải lấy lại tên ảnh cũ để tránh lưu chuỗi dài vào DB
+                else if (data.Photo != null && data.Photo.StartsWith("data:image"))
+                {
+                    var oldProduct = await CatalogDataService.GetProductAsync(data.ProductID);
+                    data.Photo = oldProduct?.Photo ?? "";
                 }
 
                 if (data.ProductID == 0)
@@ -168,37 +177,59 @@ namespace SV22T1020488.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> SavePhoto(ProductPhoto data, IFormFile? uploadPhoto)
         {
-            if (string.IsNullOrWhiteSpace(data.Description))
-                ModelState.AddModelError(nameof(data.Description), "Mô tả không được để trống");
-
-            if (!ModelState.IsValid)
+            try
             {
-                ViewBag.Title = data.PhotoID == 0 ? "Thêm ảnh cho mặt hàng" : "Thay đổi ảnh mặt hàng";
+                if (string.IsNullOrWhiteSpace(data.Description))
+                    ModelState.AddModelError(nameof(data.Description), "Mô tả không được để trống");
+
+                if (!ModelState.IsValid)
+                {
+                    ViewBag.Title = data.PhotoID == 0 ? "Thêm ảnh cho mặt hàng" : "Thay đổi ảnh mặt hàng";
+                    return View("CreatePhoto", data);
+                }
+
+                // XỬ LÝ LƯU FILE VẬT LÝ CHO THƯ VIỆN ẢNH (GIỐNG SAVE DATA)
+                if (uploadPhoto != null)
+                {
+                    string fileName = $"{DateTime.Now.Ticks}_{Path.GetFileName(uploadPhoto.FileName)}";
+                    string folder = Path.Combine(ApplicationContext.WWWRootPath, "images", "products");
+
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    string filePath = Path.Combine(folder, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await uploadPhoto.CopyToAsync(stream);
+                    }
+                    data.Photo = fileName; // Chỉ lưu tên file ngắn vào DB
+                }
+                // Xử lý chặn chuỗi Base64 dài nếu lỡ bị JavaScript ở View gửi lên
+                else if (data.Photo != null && data.Photo.StartsWith("data:image"))
+                {
+                    if (data.PhotoID > 0)
+                    {
+                        var oldPhoto = await CatalogDataService.GetPhotoAsync(data.PhotoID);
+                        data.Photo = oldPhoto?.Photo ?? "";
+                    }
+                    else
+                    {
+                        data.Photo = "";
+                    }
+                }
+
+                if (data.PhotoID == 0)
+                    await CatalogDataService.AddPhotoAsync(data);
+                else
+                    await CatalogDataService.UpdatePhotoAsync(data);
+
+                return RedirectToAction("Edit", new { id = data.ProductID });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Lỗi hệ thống: " + ex.Message);
                 return View("CreatePhoto", data);
             }
-
-            if (uploadPhoto != null && uploadPhoto.Length > 0)
-            {
-                using (var ms = new MemoryStream())
-                {
-                    await uploadPhoto.CopyToAsync(ms);
-                    byte[] fileBytes = ms.ToArray();
-                    string contentType = uploadPhoto.ContentType;
-                    data.Photo = $"data:{contentType};base64,{Convert.ToBase64String(fileBytes)}";
-                }
-            }
-            else if (data.PhotoID > 0 && string.IsNullOrEmpty(data.Photo))
-            {
-                var oldPhoto = await CatalogDataService.GetPhotoAsync(data.PhotoID);
-                data.Photo = oldPhoto?.Photo ?? "";
-            }
-
-            if (data.PhotoID == 0)
-                await CatalogDataService.AddPhotoAsync(data);
-            else
-                await CatalogDataService.UpdatePhotoAsync(data);
-
-            return RedirectToAction("Edit", new { id = data.ProductID });
         }
 
         // --- CÁC HÀM XỬ LÝ THUỘC TÍNH (ATTRIBUTES) ---
@@ -217,13 +248,11 @@ namespace SV22T1020488.Admin.Controllers
                 case "add":
                     ViewBag.Title = "Thêm thuộc tính mặt hàng";
                     var newAttr = new ProductAttribute { ProductID = id, DisplayOrder = 1 };
-                    // Sửa từ "CreateAttribute" thành "CreateAttributes" cho đúng ý bạn
                     return View("CreateAttributes", newAttr);
                 case "edit":
                     ViewBag.Title = "Chỉnh sửa thuộc tính mặt hàng";
                     var editAttr = await CatalogDataService.GetAttributeAsync(attributeId);
                     if (editAttr == null) return RedirectToAction("Edit", new { id = id });
-                    // Sửa từ "CreateAttribute" thành "CreateAttributes"
                     return View("CreateAttributes", editAttr);
                 case "delete":
                     await CatalogDataService.DeleteAttributeAsync(attributeId);
@@ -244,7 +273,6 @@ namespace SV22T1020488.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Title = data.AttributeID == 0 ? "Thêm thuộc tính mặt hàng" : "Chỉnh sửa thuộc tính mặt hàng";
-                // Sửa từ "CreateAttribute" thành "CreateAttributes"
                 return View("CreateAttributes", data);
             }
 

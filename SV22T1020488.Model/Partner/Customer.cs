@@ -37,5 +37,6 @@
         /// Khách hàng hiện có bị khóa hay không?
         /// </summary>
         public bool IsLocked { get; set; }
+        public string Password { get; set; } = string.Empty;
     }
 }

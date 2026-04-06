@@ -1,113 +1,400 @@
-﻿@model IEnumerable<SV22T1020488.Models.Catalog.Product>
+﻿@using SV22T1020488.Models.Common
+@using SV22T1020488.Models.Catalog
+@model PagedResult<Product>
+@{
+    Layout = null;
+    string defaultImg = "https://cdn-icons-png.flaticon.com/512/679/679821.png";
+}
 
-@if (Model != null && Model.Any())
+@if (Model.DataItems != null && Model.DataItems.Any())
 {
-    foreach (var item in Model)
-    {
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4 product-item">
-            <div class="card h-100 border-0 shadow-sm card-product">
-                <div class="text-center p-3 product-img-container">
-                    <img src="~/images/products/@(string.IsNullOrEmpty(item.Photo) ? "no-image.jpg" : item.Photo)"
-                         class="img-fluid product-img"
-                         style="height: 180px; object-fit: contain;">
-                </div>
+    @* --- DANH SÁCH SẢN PHẨM --- *@
+    <div class="row g-4">
+        @foreach (var item in Model.DataItems)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6 product-item">
+                @* Bọc toàn bộ Card bằng một div có sự kiện click chuyển trang *@
+                <div class="card neo-card h-100"
+                     style="border: 4px solid #1a1a1a; box-shadow: 8px 8px 0px #000; border-radius: 0; transition: 0.2s; background: #fff; cursor: pointer;"
+                     onclick="if(!$(event.target).closest('button, input').length) window.location.href='@Url.Content("~/Product/Detail/" + item.ProductID)'">
 
-                <div class="card-body d-flex flex-column">
-                    <h6 class="card-title text-truncate fw-bold">@item.ProductName</h6>
-                    <p class="text-danger fw-bold fs-5">@item.Price.ToString("N0") VNĐ</p>
+                    @* KHU VỰC ẢNH *@
+                    <div class="product-img-container" style="height: 200px; overflow: hidden; border-bottom: 4px solid #1a1a1a; background: #fff; display: flex; align-items: center; justify-content: center; position: relative;">
+                        <img src="@(string.IsNullOrEmpty(item.Photo) ? defaultImg : "/images/products/" + item.Photo)"
+                             class="product-img"
+                             style="max-height: 100%; max-width: 100%; object-fit: contain; padding: 10px;"
+                             onerror="this.src='@defaultImg'">
+                    </div>
 
-                    <div class="mt-auto d-grid">
-                        <button type="button"
-                                class="btn btn-primary btn-sm btn-add-to-cart"
-                                data-id="@item.ProductID">
-                            <i class="bi bi-gift me-1"></i> Thêm vào giỏ
-                        </button>
+                    <div class="card-body d-flex flex-column p-3">
+                        <h6 class="card-title fw-bold text-uppercase text-truncate" title="@item.ProductName">@item.ProductName</h6>
+                        <p class="text-muted small mb-1">Đơn vị: @item.Unit</p>
+                        <p class="fw-bold fs-5 mb-3" style="color: #1a1a1a;">@item.Price.ToString("N0") <small>đ</small></p>
+
+                        <div class="mt-auto">
+                            @* DÒNG 1: BỘ CHỌN SỐ LƯỢNG VÀ NÚT THÊM VÀO GIỎ *@
+                            <div class="d-flex gap-2 mb-2">
+                                <div class="d-flex flex-grow-1" style="border: 3px solid #1a1a1a; box-shadow: 3px 3px 0px #1a1a1a;">
+                                    <button type="button" class="btn-qty-minus"
+                                            style="background: #eee; border: none; border-right: 3px solid #1a1a1a; width: 30px; font-weight: 900;">
+                                        -
+                                    </button>
+                                    <input type="number" class="input-quantity-val text-center" value="1" min="1"
+                                           style="width: 100%; border: none; outline: none; font-weight: 900; background: #fff;">
+                                    <button type="button" class="btn-qty-plus"
+                                            style="background: #eee; border: none; border-left: 3px solid #1a1a1a; width: 30px; font-weight: 900;">
+                                        +
+                                    </button>
+                                </div>
+
+                                <button type="button" class="btn-add-to-cart" data-id="@item.ProductID"
+                                        style="background: #fff; border: 3px solid #1a1a1a; font-weight: 900; width: 45px; box-shadow: 3px 3px 0px #1a1a1a; cursor: pointer;">
+                                    <i class="bi bi-cart-plus-fill"></i>
+                                </button>
+                            </div>
+
+                            @* DÒNG 2: NÚT MUA NGAY *@
+                            <a href="@Url.Content("~/Cart/BuyNow/" + item.ProductID)"
+                               class="btn-buy-now w-100 d-block text-center text-decoration-none"
+                               style="background: #f4d03f; border: 3px solid #1a1a1a; font-weight: 900; padding: 10px; box-shadow: 4px 4px 0px #1a1a1a; color: #1a1a1a; text-transform: uppercase;">
+                                <i class="bi bi-lightning-charge-fill me-1"></i> Mua ngay
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
+        }
+    </div>
+
+    @* --- PHÂN TRANG --- *@
+    @if (Model.PageCount > 1)
+    {
+        <div class="d-flex justify-content-center align-items-center mt-5 mb-5 pb-5 flex-wrap gap-2">
+            @if (Model.HasPreviousPage)
+            {
+                <button onclick="doSearch(@(Model.Page - 1))" class="btn btn-outline-dark rounded-0 fw-bold border-3 px-3 shadow-sm">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            }
+
+            @foreach (var pageItem in Model.GetDisplayPages(2))
+            {
+                if (pageItem.Page == 0)
+                {
+                    <span class="fw-bold px-2">...</span>
+                }
+                else
+                {
+                    <button onclick="doSearch(@pageItem.Page)"
+                            class="btn @(pageItem.IsCurrent ? "btn-dark" : "btn-outline-dark") rounded-0 fw-bold border-3 px-3 shadow-sm"
+                            style="@(pageItem.IsCurrent ? "box-shadow: 4px 4px 0px #f4d03f;" : "")">
+                        @pageItem.Page
+                    </button>
+                }
+            }
+
+            @if (Model.HasNextPage)
+            {
+                <button onclick="doSearch(@(Model.Page + 1))" class="btn btn-outline-dark rounded-0 fw-bold border-3 px-3 shadow-sm">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            }
         </div>
     }
 }
+else
+{
+    <div class="text-center p-5 border-5 border-dark bg-white" style="box-shadow: 10px 10px 0px #000;">
+        <h3 class="fw-bold text-uppercase">Không tìm thấy sản phẩm nào!</h3>
+        <p>Thử tìm kiếm với từ khóa khác xem sao bạn nhé.</p>
+    </div>
+}
 
-@* Viết Script ngay tại View này hoặc đưa vào site.js *@
+<style>
+    /* 1. Reset & Base Style cho Card */
+    .neo-card {
+        border: 4px solid #1a1a1a !important;
+        box-shadow: 8px 8px 0px #000 !important;
+        border-radius: 0 !important;
+        background: #fff;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+        .neo-card:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 12px 12px 0px #000 !important;
+        }
+
+    /* 2. Ảnh sản phẩm */
+    .product-img-container {
+        height: 200px;
+        overflow: hidden;
+        border-bottom: 4px solid #1a1a1a;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .product-img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        padding: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    .neo-card:hover .product-img {
+        transform: scale(1.08);
+    }
+
+    /* 3. Bộ chọn số lượng */
+    .qty-wrapper {
+        border: 3px solid #1a1a1a;
+        box-shadow: 3px 3px 0px #1a1a1a;
+        background: #fff;
+    }
+
+    .btn-qty-minus, .btn-qty-plus {
+        background: #eee;
+        border: none;
+        width: 30px;
+        font-weight: 900;
+        transition: all 0.2s;
+    }
+
+    .btn-qty-minus {
+        border-right: 3px solid #1a1a1a;
+    }
+
+    .btn-qty-plus {
+        border-left: 3px solid #1a1a1a;
+    }
+
+        .btn-qty-minus:hover, .btn-qty-plus:hover {
+            background: #f4d03f;
+        }
+
+    .input-quantity-val {
+        width: 100%;
+        border: none;
+        outline: none;
+        font-weight: 900;
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+        .input-quantity-val::-webkit-inner-spin-button,
+        .input-quantity-val::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+        }
+
+    /* 4. Nút Thêm vào giỏ */
+    .btn-add-to-cart {
+        background: #fff;
+        border: 3px solid #1a1a1a;
+        font-weight: 900;
+        width: 45px;
+        box-shadow: 3px 3px 0px #1a1a1a;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+        .btn-add-to-cart:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px #1a1a1a;
+            background: #f8bbd0 !important;
+        }
+
+    /* 5. Nút Mua ngay */
+    .btn-buy-now {
+        background: #f4d03f;
+        border: 3px solid #1a1a1a;
+        font-weight: 900;
+        padding: 10px;
+        box-shadow: 4px 4px 0px #1a1a1a;
+        color: #1a1a1a !important;
+        text-transform: uppercase;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+        .btn-buy-now:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 7px 7px 0px #1a1a1a;
+            filter: brightness(1.05);
+        }
+
+    /* 6. Phân trang */
+    .btn-pagination {
+        border: 3px solid #1a1a1a !important;
+        border-radius: 0 !important;
+        font-weight: 900 !important;
+        background: #fff !important;
+        color: #1a1a1a !important;
+        transition: all 0.2s !important;
+    }
+
+        .btn-pagination:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0px #1a1a1a;
+        }
+
+        .btn-pagination.active {
+            background: #1a1a1a !important;
+            color: #fff !important;
+            box-shadow: 4px 4px 0px #f4d03f !important;
+        }
+
+    /* 7. Hiệu ứng Fly & Cart Shake */
+    .fly-gift-box {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        background-color: #f8bbd0;
+        border: 3px solid #1a1a1a;
+        box-shadow: 4px 4px 0px #000;
+        z-index: 99999;
+        pointer-events: none;
+        transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .fly-gift-box::after {
+            content: '\F3F4';
+            font-family: 'bootstrap-icons' !important;
+            font-size: 1.5rem;
+            color: #1a1a1a;
+        }
+
+        .fly-gift-box.shrinking {
+            width: 15px;
+            height: 15px;
+            opacity: 0.3;
+            transform: scale(0.2);
+        }
+
+    .cart-shake {
+        animation: neo-shake 0.5s ease-in-out;
+    }
+    @@keyframes neo-shake {
+        0%
+
+    {
+        transform: scale(1.2) rotate(0deg);
+    }
+
+    25% {
+        transform: scale(1.2) rotate(15deg);
+    }
+
+    50% {
+        transform: scale(1.2) rotate(-15deg);
+    }
+
+    75% {
+        transform: scale(1.2) rotate(10deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+
+    }
+
+    /* Click Effect */
+    button:active, .btn-buy-now:active {
+        transform: translate(0, 0) !important;
+        box-shadow: 1px 1px 0px #1a1a1a !important;
+    }
+</style>
+
 <script>
-    $(document).ready(function () {
-        // Lắng nghe sự kiện click vào nút "Thêm vào giỏ"
-        $('.btn-add-to-cart').click(function (e) {
-            e.preventDefault(); // Ngăn chặn hành vi mặc định
+        $(document).ready(function () {
+        // --- 1. LƯU VỊ TRÍ KHI CLICK VÀO CARD SẢN PHẨM ---
+        // Sử dụng delegation trên document để không bị mất sự kiện khi Ajax load
+        $(document).off('click', '.neo-card').on('click', '.neo-card', function (e) {
+            // Chỉ lưu vị trí nếu không click trúng các nút chức năng
+            if (!$(e.target).closest('button, input, a, .btn-add-to-cart').length) {
+                sessionStorage.setItem('last_scroll', $(window).scrollTop());
+            }
+        });
 
-            var productId = $(this).data('id'); // Lấy ID sản phẩm
-            var $btn = $(this); // Nút được click
-            // Tìm container chứa sản phẩm để lấy ảnh xuất phát
-            var $productItem = $btn.closest('.product-item');
+        // --- 2. CÁC SỰ KIỆN GIỎ HÀNG VÀ SỐ LƯỢNG ---
+        $(document).off('click', '.btn-qty-plus').on('click', '.btn-qty-plus', function(e) {
+            e.stopPropagation();
+            var input = $(this).siblings('.input-quantity-val');
+            input.val(parseInt(input.val()) + 1);
+        });
+
+        $(document).off('click', '.btn-qty-minus').on('click', '.btn-qty-minus', function(e) {
+            e.stopPropagation();
+            var input = $(this).siblings('.input-quantity-val');
+            var currentVal = parseInt(input.val());
+            if (currentVal > 1) {
+                input.val(currentVal - 1);
+            }
+        });
+
+        $(document).off('click', '.btn-add-to-cart').on('click', '.btn-add-to-cart', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var $button = $(this);
+            var productId = $button.data('id');
+            var $productItem = $button.closest('.product-item');
+            var quantity = $productItem.find('.input-quantity-val').val();
             var $productImg = $productItem.find('.product-img');
+            var $cartIcon = $('.nav-icon-btn');
 
-            // --- Phần 1: Gọi Ajax để thêm vào giỏ hàng ngầm ---
             $.ajax({
-                url: '/Cart/AddToCartAjax', // Đường dẫn tới Action Ajax
+                url: '@Url.Content("~/Cart/AddToCartAjax")',
                 type: 'POST',
-                data: { id: productId, quantity: 1 }, // Gửi ID sản phẩm
+                data: { id: productId, quantity: quantity },
                 success: function (response) {
                     if (response.success) {
-                        // --- Phần 2: Khởi chạy hiệu ứng hộp quà bay ---
-                        // 1. Xác định vị trí icon giỏ hàng trên Header (Điểm đến)
-                        var $cartIcon = $('#cart-icon');
-                        if ($cartIcon.length === 0) return; // Không tìm thấy giỏ hàng
+                        if ($cartIcon.length > 0 && $productImg.length > 0) {
+                            var cartOffset = $cartIcon.offset();
+                            var imgOffset = $productImg.offset();
+                            var $giftBox = $('<div class="fly-gift-box"></div>');
 
-                        var cartOffset = $cartIcon.offset();
-                        var cartX = cartOffset.left;
-                        var cartY = cartOffset.top;
-
-                        // 2. Xác định vị trí ảnh sản phẩm (Điểm xuất phát)
-                        // Chúng ta lấy vị trí của ảnh để hộp quà bay ra từ tâm ảnh
-                        var imgOffset = $productImg.offset();
-                        var imgX = imgOffset.left + ($productImg.width() / 2);
-                        var imgY = imgOffset.top + ($productImg.height() / 2);
-
-                        // 3. Tạo thẻ div "Hộp quà" bay
-                        var $giftBox = $('<div class="fly-gift-box"></div>');
-                        $giftBox.css({
-                            left: imgX + 'px',
-                            top: imgY + 'px',
-                            transform: 'translate(-50%, -50%) scale(1)' // Căn tâm hộp quà
-                        });
-                        $('body').append($giftBox); // Thêm vào body để bay tự do
-
-                        // 4. Thực hiện bay (Sử dụng setTimeout để CSS kịp nhận vị trí ban đầu)
-                        setTimeout(function () {
-                            // Cập nhật vị trí mới (đến giỏ hàng) và thêm class shrinking để thu nhỏ
                             $giftBox.css({
-                                left: cartX + 'px',
-                                top: (cartY + 20) + 'px' // Hạ thấp một chút để giống bay vào miệng giỏ
-                            }).addClass('shrinking');
-                        }, 50);
+                                left: (imgOffset.left + $productImg.width() / 2) + 'px',
+                                top: (imgOffset.top + $productImg.height() / 2) + 'px',
+                                transform: 'translate(-50%, -50%)'
+                            });
 
-                        // 5. Xử lý sau khi bay xong (sau 1 giây - khớp với thời gian transition CSS)
-                        setTimeout(function () {
-                            $giftBox.remove(); // Xóa hộp quà khỏi màn hình
+                            $('body').append($giftBox);
 
-                            // Thêm hiệu ứng lắc nhẹ cho icon giỏ hàng để thông báo đã nhận
-                            $cartIcon.addClass('bi-cart3-fill text-warning').removeClass('bi-cart3');
+                            setTimeout(function () {
+                                $giftBox.css({
+                                    left: (cartOffset.left + $cartIcon.width() / 2) + 'px',
+                                    top: (cartOffset.top + $cartIcon.height() / 2) + 'px'
+                                }).addClass('shrinking');
+                            }, 50);
 
-                            // Cập nhật số lượng Badge giỏ hàng
-                            $('#cart-count').text(response.totalItems).addClass('bg-success').removeClass('bg-danger');
-
-                            // Xóa hiệu ứng lắc sau 0.5s
-                            setTimeout(function(){
-                                $cartIcon.removeClass('bi-cart3-fill text-warning').addClass('bi-cart3');
-                                $('#cart-count').removeClass('bg-success').addClass('bg-danger');
-                            }, 500);
-
-                        }, 1000); // 1000ms = 1 giây bay
-
+                            setTimeout(function () {
+                                $giftBox.remove();
+                                $('.cart-badge').text(response.totalItems).hide().fadeIn();
+                                $cartIcon.addClass('cart-shake');
+                                setTimeout(function(){ $cartIcon.removeClass('cart-shake'); }, 500);
+                            }, 800);
+                        }
                     } else {
-                        alert('Lỗi: ' + response.message);
+                        alert(response.message || 'Lỗi khi thêm vào giỏ.');
                     }
-                },
-                error: function () {
-                    alert('Không thể kết nối tới server. Vui lòng thử lại.');
                 }
             });
+        });
+
+        $(document).on('click', '.input-quantity-val', function(e) {
+            e.stopPropagation();
         });
     });
 </script>

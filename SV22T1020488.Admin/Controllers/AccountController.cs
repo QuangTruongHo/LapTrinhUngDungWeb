@@ -43,7 +43,19 @@ namespace SV22T1020488.Admin.Controllers
 
             if (userAccount != null)
             {
-                // KHỞI TẠO DỮ LIỆU USER ĐỂ LƯU VÀO COOKIE
+                // 1. Lấy danh sách Roles từ DB và làm sạch chuỗi
+                var roles = userAccount.RoleNames?.Split(',')
+                                                 .Select(r => r.Trim().ToLower()) // Chuyển về chữ thường để so sánh chuẩn
+                                                 .ToList() ?? new List<string>();
+
+                // 2. LOGIC QUAN TRỌNG: Nếu là "employee", tự động "tặng" thêm quyền "sales"
+                // Điều này giúp user thấy được menu bán hàng mà bạn không cần sửa DB
+                if (roles.Contains("employee") && !roles.Contains(WebUserRoles.Sales))
+                {
+                    roles.Add(WebUserRoles.Sales);
+                }
+
+                // 3. Khởi tạo dữ liệu để ghi vào Cookie
                 var userData = new WebUserData()
                 {
                     UserId = userAccount.UserId,
@@ -51,12 +63,10 @@ namespace SV22T1020488.Admin.Controllers
                     DisplayName = userAccount.DisplayName,
                     Email = userAccount.Email,
                     Photo = userAccount.Photo,
-                    // Tách chuỗi RoleNames (ví dụ: "admin,sales") thành List<string>
-                    Roles = userAccount.RoleNames?.Split(',').Select(r => r.Trim()).ToList() ?? new List<string>()
+                    Roles = roles // Sử dụng danh sách roles đã được xử lý ở trên
                 };
 
                 // Ghi Cookie phiên đăng nhập
-                // LƯU Ý: Hàm userData.CreatePrincipal() phải chứa logic nạp Roles vào Claims
                 await HttpContext.SignInAsync(
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     userData.CreatePrincipal(),

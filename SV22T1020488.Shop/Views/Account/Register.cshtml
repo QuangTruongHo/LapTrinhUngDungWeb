@@ -1,45 +1,270 @@
 ﻿@{
-    ViewBag.Title = "Đăng ký tài khoản";
+    Layout = null;
 }
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card shadow-lg border-0">
-            <div class="card-header bg-success text-white text-center">
-                <h4 class="mb-0">ĐĂNG KÝ THÀNH VIÊN</h4>
-            </div>
-            <div class="card-body p-4">
-                <form action="~/Account/Register" method="post">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Họ và tên</label>
-                            <input type="text" name="customerName" class="form-control" placeholder="Nguyễn Văn A" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Điện thoại</label>
-                            <input type="tel" name="phone" class="form-control" placeholder="0905..." required>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký thành viên - Tạp hóa của Trường</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --neo-border: #1a1a1a;
+            --neo-shadow: #000000;
+            --neo-bg: #f4eee0;
+            --neo-yellow: #f4d03f;
+            --neo-pink: #f8bbd0;
+            --neo-green: #a3d9c5;
+            --neo-blue: #a6c1ee;
+        }
+
+        body {
+            background-color: #fbc2eb;
+            background-image: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Space Mono', monospace;
+            color: var(--neo-border);
+        }
+
+        /* Card đăng ký với viền dày và đổ bóng cực mạnh */
+        .register-card {
+            background: var(--neo-bg);
+            border: 6px solid var(--neo-border);
+            border-radius: 0px;
+            box-shadow: 20px 20px 0px var(--neo-shadow);
+            overflow: hidden;
+            max-width: 950px;
+            width: 95%;
+            display: flex;
+            align-items: stretch;
+        }
+
+        /* Side image sử dụng màu xanh Mint đặc trưng */
+        .side-image {
+            background: var(--neo-green);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-right: 6px solid var(--neo-border);
+        }
+
+            .side-image img {
+                width: 100%;
+                max-width: 320px;
+                height: auto;
+                filter: drop-shadow(10px 10px 0px var(--neo-border));
+                margin-bottom: 25px;
+            }
+
+        .side-brand {
+            font-weight: 900;
+            text-transform: uppercase;
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border: 4px solid var(--neo-border);
+            box-shadow: 6px 6px 0px var(--neo-border);
+            font-size: 1.2rem;
+        }
+
+        /* Form section */
+        .form-section {
+            flex: 1.2;
+            padding: 50px;
+            background: white;
+        }
+
+            .form-section h2 {
+                font-weight: 900;
+                text-transform: uppercase;
+                font-size: 2.2rem;
+                margin-bottom: 35px;
+                display: inline-block;
+                position: relative;
+            }
+
+                /* Gạch chân tiêu đề màu Vàng Neo */
+                .form-section h2::after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 10px;
+                    background: var(--neo-yellow);
+                    border: 2px solid var(--neo-border);
+                    z-index: -1;
+                }
+
+        .form-label-custom {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control {
+            border-radius: 0px;
+            border: 3px solid var(--neo-border);
+            padding: 12px 15px;
+            font-family: inherit;
+            box-shadow: 4px 4px 0px var(--neo-border);
+            transition: 0.2s;
+            margin-bottom: 5px;
+        }
+
+            .form-control:focus {
+                outline: none;
+                box-shadow: 7px 7px 0px var(--neo-border);
+                transform: translate(-2px, -2px);
+                border-color: var(--neo-border);
+            }
+
+        .password-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--neo-border);
+            font-size: 1.2rem;
+            z-index: 10;
+        }
+
+        /* Button Đăng ký màu đen bóng hồng */
+        .btn-submit {
+            background-color: var(--neo-border);
+            border: none;
+            color: white;
+            padding: 15px;
+            font-weight: 900;
+            text-transform: uppercase;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 6px 6px 0px var(--neo-pink);
+            transition: 0.2s;
+            letter-spacing: 1px;
+        }
+
+            .btn-submit:hover {
+                transform: translate(3px, 3px);
+                box-shadow: 0px 0px 0px var(--neo-pink);
+                color: white;
+            }
+
+        .text-link {
+            color: var(--neo-border);
+            text-decoration: underline;
+            font-weight: 700;
+        }
+
+        @@media (max-width: 768px) {
+            .side-image {
+                display: none;
+            }
+
+            .register-card {
+                max-width: 450px;
+            }
+
+            .form-section {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="register-card">
+        <div class="side-image">
+            <img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" alt="Register Illustration">
+            <div class="side-brand">GIA NHẬP <br> TẠP HÓA TRƯỜNG</div>
+        </div>
+
+        <div class="form-section">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" style="border: 3px solid black; box-shadow: 4px 4px 0px black; border-radius: 0; font-weight: bold;">
+                    @Html.ValidationSummary(false, "")
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-warning" style="border: 3px solid black; box-shadow: 4px 4px 0px black; border-radius: 0; font-weight: bold;">
+                    <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+                </div>
+            }
+            <h2>Đăng ký</h2>
+
+            <form action="~/Account/Register" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-4">
+                    <label class="form-label-custom">Họ và tên</label>
+                    <input type="text" name="CustomerName" class="form-control" placeholder="NGUYỄN VĂN A" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label-custom">Email đăng nhập</label>
+                    <input type="email" name="Email" class="form-control" placeholder="EXAMPLE@GMAIL.COM" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Mật khẩu</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" name="password" class="form-control" placeholder="******" required>
+                            <i class="bi bi-eye-slash toggle-password" onclick="togglePassword('password', this)"></i>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Email (Dùng để đăng nhập)</label>
-                        <input type="email" name="email" class="form-control" placeholder="example@gmail.com" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Địa chỉ</label>
-                        <input type="text" name="address" class="form-control" placeholder="Số nhà, tên đường..." required>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Mật khẩu</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Xác nhận mật khẩu</label>
-                            <input type="password" name="confirmPassword" class="form-control" required>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Xác nhận</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="******" required>
+                            <i class="bi bi-eye-slash toggle-password" onclick="togglePassword('confirmPassword', this)"></i>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-success w-100 btn-lg">TẠO TÀI KHOẢN</button>
-                </form>
-            </div>
+                </div>
+
+                <button type="submit" class="btn-submit">TẠO TÀI KHOẢN NGAY</button>
+
+                <p class="text-center mt-5 small">
+                    ĐÃ CÓ TÀI KHOẢN? <br>
+                    <a href="~/Account/Login" class="text-link">QUAY LẠI ĐĂNG NHẬP</a>
+                </p>
+            </form>
         </div>
     </div>
-</div>
+
+    <script>
+        function togglePassword(inputId, icon) {
+            const passwordInput = document.getElementById(inputId);
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            }
+        }
+    </script>
+</body>
+</html>

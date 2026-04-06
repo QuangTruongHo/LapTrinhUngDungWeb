@@ -31,7 +31,7 @@
                 <form id="formEdit" action="~/Product/SaveData" method="post" enctype="multipart/form-data">
                     @* Hidden fields *@
                     <input type="hidden" asp-for="ProductID" />
-                    @* Trường Photo này sẽ nhận chuỗi Base64 hoặc tên file từ server *@
+                    @* Trường Photo này sẽ nhận chuỗi tên file từ server hoặc để trống nếu upload mới *@
                     <input type="hidden" asp-for="Photo" id="PhotoData" />
 
                     <div class="row mb-3">
@@ -85,8 +85,8 @@
                     <div class="row mb-3">
                         <label class="col-sm-2 col-form-label fw-bold">Ảnh sản phẩm</label>
                         <div class="col-sm-10">
-                            @* Input file dùng để chọn ảnh *@
-                            <input type="file" id="filePicker" class="form-control" accept="image/*" onchange="convertToBase64()" />
+                            @* Input file dùng để chọn ảnh - Thêm name="uploadPhoto" để đồng bộ với Controller *@
+                            <input type="file" id="filePicker" name="uploadPhoto" class="form-control" accept="image/*" onchange="previewImage()" />
 
                             <div class="mt-2">
                                 <img id="imgPreview"
@@ -137,20 +137,20 @@
     </div>
 }
 
-@* Script xử lý chuyển ảnh sang String (Base64) *@
+@* Script xử lý hiển thị ảnh và dọn dẹp data trước khi submit *@
 <script>
-    function convertToBase64() {
-        var file = document.getElementById('filePicker').files[0];
+    function previewImage() {
+        var filePicker = document.getElementById('filePicker');
+        var file = filePicker.files[0];
         if (file) {
-            var reader = new FileReader();
-            reader.onloadend = function() {
-                var base64String = reader.result;
-                // Gán chuỗi vào hidden input để gửi lên server
-                document.getElementById('PhotoData').value = base64String;
-                // Cập nhật ảnh hiển thị tạm thời
-                document.getElementById('imgPreview').src = base64String;
-            }
-            reader.readAsDataURL(file);
+            // Tạo URL tạm thời để hiển thị ảnh xem trước
+            var previewUrl = window.URL.createObjectURL(file);
+            document.getElementById('imgPreview').src = previewUrl;
+
+            // Quan trọng: Xóa trắng giá trị trong hidden input PhotoData
+            // Điều này đảm bảo Controller nhận thấy data.Photo trống và uploadPhoto có file
+            // tránh việc gửi chuỗi Base64 cũ lên server.
+            document.getElementById('PhotoData').value = "";
         }
     }
 </script>

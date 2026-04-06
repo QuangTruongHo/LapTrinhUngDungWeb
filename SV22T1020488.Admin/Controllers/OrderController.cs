@@ -16,16 +16,14 @@ namespace SV22T1020488.Admin.Controllers
     /// </summary>
     public class OrderController : Controller
     {
-        /// <summary>
-        /// Giao diện danh sách đơn hàng
-        /// </summary>
-        /// 
         private const int PAGESIZE = 10;
         private const string PRODUCT_SEARCH = "ProductSearchInput";
 
+        /// <summary>
+        /// Giao diện danh sách đơn hàng
+        /// </summary>
         public IActionResult Index()
         {
-
             var input = ApplicationContext.GetSessionData<OrderSearchInput>(PRODUCT_SEARCH);
             if (input == null)
             {
@@ -34,7 +32,7 @@ namespace SV22T1020488.Admin.Controllers
                     Page = 1,
                     PageSize = ApplicationContext.PageSize,
                     SearchValue = "",
-                    Status = 0, // Giả sử 0 là "Tất cả" trong Enum của bạn
+                    Status = 0, // 0 đại diện cho trạng thái "Tất cả"
                     DateFrom = null,
                     DateTo = null
                 };
@@ -53,8 +51,8 @@ namespace SV22T1020488.Admin.Controllers
                 var dates = dateRange.Split(" - ");
                 if (dates.Length == 2)
                 {
-                    input.DateFrom = DateTime.ParseExact(dates[0], "d/m/yyyy", CultureInfo.InvariantCulture);
-                    input.DateTo = DateTime.ParseExact(dates[1], "d/m/yyyy", CultureInfo.InvariantCulture);
+                    input.DateFrom = DateTime.ParseExact(dates[0], "d/M/yyyy", CultureInfo.InvariantCulture);
+                    input.DateTo = DateTime.ParseExact(dates[1], "d/M/yyyy", CultureInfo.InvariantCulture);
                 }
             }
 
@@ -70,23 +68,27 @@ namespace SV22T1020488.Admin.Controllers
         }
 
         /// <summary>
-        /// Giao diện lập đơn hàng mới
+        /// Tìm kiếm mặt hàng để thêm vào đơn hàng
         /// </summary>
-        
         public async Task<IActionResult> SearchProduct(ProductSearchInput input)
         {
             var result = await CatalogDataService.ListProductsAsync(input);
             ApplicationContext.SetSessionData(PRODUCT_SEARCH, input);
             return View(result);
-
         }
 
+        /// <summary>
+        /// Hiển thị giỏ hàng hiện tại
+        /// </summary>
         public IActionResult ShowCart()
         {
             var cart = ShoppingCartService.GetShoppingCart();
             return View(cart);
         }
 
+        /// <summary>
+        /// Thêm mặt hàng vào giỏ hàng
+        /// </summary>
         public async Task<IActionResult> AddCartItem(int productID, int quantity, decimal price)
         {
             if (quantity <= 0)
@@ -113,6 +115,10 @@ namespace SV22T1020488.Admin.Controllers
 
             return Json(new ApiResult(1));
         }
+
+        /// <summary>
+        /// Giao diện lập đơn hàng mới
+        /// </summary>
         public IActionResult Create()
         {
             var input = ApplicationContext.GetSessionData<ProductSearchInput>(PRODUCT_SEARCH);
@@ -131,30 +137,19 @@ namespace SV22T1020488.Admin.Controllers
         /// <summary>
         /// Hiển thị thông tin chi tiết của một đơn hàng
         /// </summary>
-        /// <param name="id">Mã đơn hàng</param>
         public async Task<IActionResult> Detail(int id)
         {
-            // 1. Lấy thông tin đơn hàng (trả về kiểu OrderViewInfo đã có đủ tên khách, nhân viên, shipper)
             var order = await SalesDataService.GetOrderAsync(id);
             if (order == null)
                 return RedirectToAction("Index");
 
-            // 2. Lấy danh sách mặt hàng của đơn hàng này
             var details = await SalesDataService.ListDetailsAsync(id);
-
-            // 3. Truyền dữ liệu sang View thông qua một Tuple hoặc ViewModel
-            // Ở đây tôi dùng Tuple cho nhanh: Item1 là Order, Item2 là List Details
             var model = new Tuple<OrderViewInfo, List<OrderDetailViewInfo>>(order, details);
 
             return View(model);
         }
 
-        /// <summary>
-        /// Hiển thị thông tin của mặt hàng cần cập nhật
-        /// </summary>
-
-        /// <param name="productId">Mã sản phẩm</param>
-        public IActionResult EditCartItem (int productId=0)
+        public IActionResult EditCartItem(int productId = 0)
         {
             var item = ShoppingCartService.GetCartItem(productId);
             return PartialView(item);
@@ -170,11 +165,8 @@ namespace SV22T1020488.Admin.Controllers
             ShoppingCartService.UpdateCartItem(productId, quantity, salePrice);
             return Json(new ApiResult(1));
         }
-        /// <summary>
-        /// Xóa một sản phẩm khỏi danh sách mặt hàng của đơn hàng
-        /// </summary>
-        /// <param name="productId">Mã sản phẩm</param>
-        public IActionResult DeleteCartItem(int productId=0)
+
+        public IActionResult DeleteCartItem(int productId = 0)
         {
             if (Request.Method == "POST")
             {
@@ -186,9 +178,6 @@ namespace SV22T1020488.Admin.Controllers
             return PartialView(item);
         }
 
-        /// <summary>
-        /// Xóa toàn bộ sản phẩm đã chọn trong giỏ hàng
-        /// </summary>
         public IActionResult ClearCart()
         {
             if (Request.Method == "POST")
@@ -196,27 +185,35 @@ namespace SV22T1020488.Admin.Controllers
                 ShoppingCartService.ClearCart();
                 return Json(new ApiResult(1));
             }
-                return PartialView();
+            return PartialView();
         }
 
+        /// <summary>
+        /// Thực hiện lưu đơn hàng vào CSDL
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateOrder(int customerID = 0, string province = "", string address = "")
         {
             var cart = ShoppingCartService.GetShoppingCart();
-            if (cart.Count == 0)
-                return Json(new ApiResult(0, "Giỏ hàng trống"));
+            if (cart.Count == 0) return Json(new ApiResult(0, "Giỏ hàng trống"));
+
+            var userData = User.GetUserData();
+            int employeeId = userData != null ? int.Parse(userData.UserId ?? "0") : 0;
 
             var order = new Order()
             {
                 CustomerID = customerID == 0 ? null : customerID,
                 DeliveryProvince = province,
-                DeliveryAddress = address
-
+                DeliveryAddress = address,
+                EmployeeID = employeeId,
+                OrderTime = DateTime.Now,
+                Status = OrderStatusEnum.New // Sử dụng Enum New = 1
             };
-            int orderID = SalesDataService.AddOrderAsync(order).Result;
+
+            int orderID = await SalesDataService.AddOrderAsync(order);
+
             foreach (var item in cart)
             {
-
                 await SalesDataService.AddDetailAsync(new OrderDetail()
                 {
                     OrderID = orderID,
@@ -225,31 +222,39 @@ namespace SV22T1020488.Admin.Controllers
                     SalePrice = item.SalePrice
                 });
             }
+
             ShoppingCartService.ClearCart();
-            //Trả về kết quả thành công với code là mã đơn hàng mới
             return Json(new ApiResult(orderID));
         }
+
         /// <summary>
-        /// Chấp nhận/Duyệt đơn hàng (Chuyển từ trạng thái Chờ sang Đã xác nhận)
+        /// Chấp nhận/Duyệt đơn hàng
         /// </summary>
-        /// <param name="id">Mã đơn hàng</param>
         public async Task<IActionResult> Accept(int id)
         {
-            var order = await SalesDataService.GetOrderAsync(id);
-            if (order == null) return NotFound();
-
             if (Request.Method == "POST")
             {
+                var order = await SalesDataService.GetOrderAsync(id);
+                if (order == null) return Json(new { code = 0, message = "Đơn hàng không tồn tại." });
+
                 if (order.Status != OrderStatusEnum.New)
                     return Json(new { code = 0, message = "Chỉ đơn hàng mới mới được phép duyệt." });
 
-                bool result = await SalesDataService.AcceptOrderAsync(id, 1); // ID nhân viên tạm thời là 1
+                var userData = User.GetUserData();
+                int employeeId = userData != null ? int.Parse(userData.UserId ?? "0") : 0;
+
+                bool result = await SalesDataService.AcceptOrderAsync(id, employeeId);
                 return Json(result ? new { code = 1 } : new { code = 0, message = "Lỗi khi duyệt đơn." });
             }
-            return View(order);
+
+            var model = await SalesDataService.GetOrderAsync(id);
+            if (model == null) return NotFound();
+            return PartialView(model);
         }
 
-
+        /// <summary>
+        /// Chuyển đơn hàng sang trạng thái đang giao
+        /// </summary>
         public async Task<IActionResult> Shipping(int id, int shipperID = 0)
         {
             var order = await SalesDataService.GetOrderAsync(id);
@@ -263,13 +268,12 @@ namespace SV22T1020488.Admin.Controllers
                 bool result = await SalesDataService.ShipOrderAsync(id, shipperID);
                 return Json(result ? new { code = 1 } : new { code = 0, message = "Lỗi khi giao hàng." });
             }
-            return View(order);
+            return PartialView(order);
         }
 
         /// <summary>
-        /// Xác nhận đơn hàng đã giao thành công và kết thúc quy trình
+        /// Xác nhận hoàn tất đơn hàng
         /// </summary>
-        /// <param name="id">Mã đơn hàng</param>
         public async Task<IActionResult> Finish(int id)
         {
             var order = await SalesDataService.GetOrderAsync(id);
@@ -277,36 +281,38 @@ namespace SV22T1020488.Admin.Controllers
 
             if (Request.Method == "POST")
             {
-                if ((int)order.Status != 3)
+                // Sửa logic: Đã thay đổi ép kiểu (int)3 sang OrderStatusEnum.Shipping
+                if (order.Status != OrderStatusEnum.Shipping)
                     return Json(new { code = 0, message = "Đơn hàng phải ở trạng thái đang giao mới có thể hoàn tất" });
 
                 bool result = await SalesDataService.CompleteOrderAsync(id);
                 return Json(result ? new { code = 1 } : new { code = 0, message = "Lỗi khi hoàn tất đơn hàng" });
             }
-            return View(order);
+            return PartialView(order);
         }
 
         /// <summary>
-        /// Từ chối đơn hàng (Trường hợp đơn hàng không hợp lệ ngay từ đầu)
+        /// Từ chối đơn hàng
         /// </summary>
-        /// <param name="id">Mã đơn hàng</param>
         public async Task<IActionResult> Reject(int id)
         {
             if (Request.Method == "POST")
             {
-                bool result = await SalesDataService.RejectOrderAsync(id, 1);
-                return Json(result ? new { code = 1 } : new { code = 0, message = "Lỗi khi từ chối" });
+                var userData = User.GetUserData();
+                int employeeId = userData != null ? int.Parse(userData.UserId ?? "0") : 0;
+
+                bool result = await SalesDataService.RejectOrderAsync(id, employeeId);
+                return Json(result ? new { code = 1 } : new { code = 0, message = "Lỗi khi từ chối đơn hàng." });
             }
-            var data = await SalesDataService.GetOrderAsync(id);
-            return View(data);
+
+            var order = await SalesDataService.GetOrderAsync(id);
+            if (order == null) return NotFound();
+            return PartialView(order);
         }
 
         /// <summary>
-        /// Hủy đơn hàng (Trường hợp khách yêu cầu hủy khi đơn đã được duyệt hoặc đang giao)
+        /// Hủy đơn hàng
         /// </summary>
-        /// <param name="id">Mã đơn hàng</param>
-
-
         public async Task<IActionResult> Cancel(int id)
         {
             var order = await SalesDataService.GetOrderAsync(id);
@@ -314,20 +320,19 @@ namespace SV22T1020488.Admin.Controllers
 
             if (Request.Method == "POST")
             {
-                // Không cho phép hủy nếu đã hoàn tất
+                // Sửa logic: Kiểm tra trạng thái bằng Enum thay vì so sánh chuỗi
                 if (order.Status == OrderStatusEnum.Completed)
                     return Json(new { code = 0, message = "Đơn hàng đã hoàn tất, không thể hủy." });
 
                 bool result = await SalesDataService.CancelOrderAsync(id);
                 return Json(result ? new { code = 1 } : new { code = 0, message = "Lỗi khi hủy đơn." });
             }
-            return View(order);
+            return PartialView(order);
         }
 
         /// <summary>
-        /// Xóa vĩnh viễn đơn hàng khỏi hệ thống
+        /// Xóa đơn hàng (chỉ dành cho đơn hàng ở trạng thái kết thúc hoặc vừa tạo)
         /// </summary>
-        /// <param name="id">Mã đơn hàng</param>
         public async Task<IActionResult> Delete(int id)
         {
             var order = await SalesDataService.GetOrderAsync(id);
@@ -335,7 +340,7 @@ namespace SV22T1020488.Admin.Controllers
 
             if (Request.Method == "POST")
             {
-                // Chỉ cho phép xóa nếu là Mới, Đã Hủy hoặc Bị Từ Chối
+                // Logic kiểm tra trạng thái cho phép xóa đồng bộ với Enum
                 if (order.Status == OrderStatusEnum.New ||
                     order.Status == OrderStatusEnum.Cancelled ||
                     order.Status == OrderStatusEnum.Rejected)
@@ -345,7 +350,7 @@ namespace SV22T1020488.Admin.Controllers
                 }
                 return Json(new { code = 0, message = "Không được phép xóa đơn hàng đang xử lý." });
             }
-            return View(order);
+            return PartialView(order);
         }
     }
 }

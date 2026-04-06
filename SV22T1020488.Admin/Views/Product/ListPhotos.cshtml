@@ -14,7 +14,6 @@
                         </h6>
                     </div>
                     <div class="col text-end">
-                        @* Đã sửa: Photo -> CreatePhoto *@
                         <a class="btn btn-sm btn-primary" href="~/Product/CreatePhoto/@ViewBag.ProductID?method=add">
                             <i class="bi bi-plus-circle me-1"></i>
                             Thêm ảnh
@@ -41,7 +40,8 @@
                             {
                                 <tr>
                                     <td class="text-center align-middle">
-                                        <img src="@(string.IsNullOrEmpty(item.Photo) ? Url.Content("~/images/products/nophoto.png") : item.Photo)"
+                                        @* Cập nhật logic hiển thị ảnh: Nếu là tên file thì nối đường dẫn, nếu là chuỗi trắng thì dùng nophoto *@
+                                        <img src="@(string.IsNullOrEmpty(item.Photo) ? Url.Content("~/images/products/nophoto.png") : Url.Content($"~/images/products/{item.Photo}"))"
                                              class="img-thumbnail shadow-sm"
                                              style="max-height:70px; width:70px; object-fit:cover;"
                                              onerror="this.src='/images/products/nophoto.png'" />
@@ -59,12 +59,10 @@
                                         }
                                     </td>
                                     <td class="text-center text-nowrap align-middle">
-                                        @* Đã sửa: Photo -> CreatePhoto *@
                                         <a class="btn btn-sm btn-outline-primary"
                                            href="~/Product/CreatePhoto/@item.ProductID?method=edit&photoId=@item.PhotoID">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        @* Đã sửa: Photo -> CreatePhoto *@
                                         <a class="btn btn-sm btn-outline-danger"
                                            href="~/Product/CreatePhoto/@item.ProductID?method=delete&photoId=@item.PhotoID"
                                            onclick="return confirm('Bạn có chắc chắn muốn xóa ảnh này không?')">

@@ -1,30 +1,305 @@
 ﻿@using SV22T1020488.Models.Catalog
-@* DÒNG QUAN TRỌNG: Khai báo Model để tránh lỗi dynamic *@
-@model IEnumerable<Product>
-
+@model ProductSearchInput
 @{
-    ViewBag.Title = "Trang chủ Cửa hàng";
+    ViewBag.Title = "Trang chủ - Tạp hóa của Trường";
+    var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
 }
 
-<div class="p-5 mb-4 bg-light rounded-3 shadow-sm" style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/images/banner.jpg') no-repeat center; background-size: cover; min-height: 350px;">
-    <div class="container-fluid py-5 text-white text-center">
-        <h1 class="display-4 fw-bold">Mua sắm thả ga</h1>
-        <p class="fs-4">Chào mừng bạn đến với hệ thống bán hàng trực tuyến chất lượng cao.</p>
-        <a href="~/Product" class="btn btn-warning btn-lg px-5 fw-bold shadow">Xem sản phẩm ngay</a>
-    </div>
-</div>
+@* --- CSS ĐẶC THÙ CHO TRANG CHỦ --- *@
+<style>
+    /* --- HERO BANNER: ĐÃ GIẢM CHIỀU CAO --- */
+    .hero-banner {
+        border: 6px solid var(--neo-border);
+        min-height: 380px; /* Giảm từ 480px xuống 380px */
+        display: flex;
+        align-items: center;
+        position: relative;
+        box-shadow: 12px 12px 0px var(--neo-shadow);
+        overflow: hidden;
+        margin-bottom: 40px;
+        background: var(--neo-pink);
+        margin-top: 20px;
+    }
 
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
-        <h3 class="mb-0">Sản phẩm mới nhất</h3>
-        <a href="~/Product" class="text-decoration-none">Xem tất cả <i class="bi bi-arrow-right"></i></a>
-    </div>
+    .hero-content {
+        padding: 40px 60px; /* Giảm padding để banner gọn hơn */
+        z-index: 2;
+    }
 
-    <div class="row">
-        @* SỬA LỖI: Đảm bảo truyền dữ liệu đúng kiểu IEnumerable<Product> *@
-        @{
-            var displayList = Model ?? new List<Product>();
+    /* Tinh chỉnh label giảm giá nhỏ lại */
+    .promo-label {
+        background: var(--neo-border);
+        color: white;
+        display: inline-block;
+        padding: 8px 16px;
+        font-size: 1.2rem;
+        font-weight: 900;
+        margin-bottom: 15px;
+        box-shadow: 5px 5px 0px var(--neo-yellow);
+        text-transform: uppercase;
+        border: 3px solid var(--neo-border);
+    }
+
+    /* --- NÚT BẤM: ĐÃ CÂN BẰNG CHIỀU CAO VÀ KÍCH THƯỚC --- */
+    .btn-neo {
+        border: 4px solid var(--neo-border);
+        height: 56px; /* Cố định chiều cao để 2 nút bằng nhau tuyệt đối */
+        padding: 0 35px;
+        font-weight: 900;
+        box-shadow: 6px 6px 0px var(--neo-shadow);
+        cursor: pointer;
+        display: inline-flex; /* Chuyển sang flex để căn giữa chữ */
+        align-items: center;
+        justify-content: center;
+        text-transform: uppercase;
+        transition: 0.1s;
+        text-decoration: none;
+        font-size: 1rem;
+        min-width: 200px; /* Đảm bảo độ rộng cân xứng */
+    }
+
+        .btn-neo:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px var(--neo-shadow);
+            color: inherit;
         }
-        @await Html.PartialAsync("../Product/SearchResult", displayList)
+
+    .btn-buy-now {
+        background: var(--neo-yellow);
+        color: black;
+    }
+
+    .btn-policy {
+        background: var(--neo-border);
+        color: white;
+    }
+
+    /* Search Wrapper Custom */
+    .search-advanced-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        border: 6px solid var(--neo-border);
+        box-shadow: 12px 12px 0px var(--neo-shadow);
+        background: #fff;
+        margin-top: 20px;
+    }
+
+    .search-input-neo {
+        border: none;
+        border-right: 6px solid var(--neo-border);
+        padding: 12px 20px;
+        font-weight: 700;
+        outline: none;
+        background: transparent;
+        font-family: inherit;
+        height: 60px; /* Chiều cao cố định cho các ô input */
+    }
+
+    .input-text-main {
+        flex-grow: 3;
+    }
+
+    .price-filter-group {
+        display: flex;
+        align-items: center;
+        background: var(--neo-yellow);
+        border-right: 6px solid var(--neo-border);
+        height: 60px;
+    }
+
+    .input-price-neo {
+        width: 120px;
+        border: none;
+        padding: 0 10px;
+        font-weight: 700;
+        outline: none;
+        background: transparent;
+        text-align: center;
+    }
+
+    .select-category {
+        background-color: var(--neo-pink);
+        min-width: 180px;
+        cursor: pointer;
+    }
+
+    .btn-search-submit {
+        background: var(--neo-cyan);
+        color: black;
+        border: none;
+        padding: 0 30px;
+        font-weight: 900;
+        cursor: pointer;
+        text-transform: uppercase;
+        flex-grow: 1;
+        font-family: inherit;
+        height: 60px;
+    }
+
+        .btn-search-submit:hover {
+            background: var(--neo-border);
+            color: white;
+        }
+
+    .hero-img-floating {
+        position: absolute;
+        right: 60px;
+        width: 300px; /* Thu nhỏ ảnh để hợp với banner mới */
+        filter: drop-shadow(10px 10px 0px var(--neo-border));
+        z-index: 1;
+    }
+
+    @@media (max-width: 992px) {
+        .search-advanced-wrapper {
+            flex-direction: column;
+        }
+
+        .search-input-neo, .price-filter-group {
+            border-right: none;
+            border-bottom: 4px solid var(--neo-border);
+            width: 100%;
+        }
+
+        .hero-img-floating {
+            display: none;
+        }
+
+        .hero-content {
+            padding: 30px;
+        }
+
+        .btn-neo {
+            width: 100%;
+            min-width: unset;
+        }
+    }
+</style>
+
+<div class="hero-banner">
+    <div class="hero-content">
+        <div class="promo-label">SIÊU GIẢM GIÁ -30%</div>
+        <h1 style="font-size: 3.5rem; font-weight: 900; line-height: 1.1; color: var(--neo-border); margin: 0;">
+            MỌI THỨ<br>BẠN CẦN<span>.</span>
+        </h1>
+        <p class="fw-bold mt-3 fs-6" style="max-width: 600px;">
+            Hàng hóa chất lượng cao, giá cả sinh viên ngay trong tầm tay.
+        </p>
+        <div class="d-flex flex-wrap gap-3 mt-4">
+            <a href="#product-section" class="btn-neo btn-buy-now">BẮT ĐẦU MUA SẮM</a>
+            <a href="~/Home/Privacy" class="btn-neo btn-policy">CHÍNH SÁCH</a>
+        </div>
+    </div>
+    <img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" class="hero-img-floating">
+</div>
+
+<div id="product-section" class="pt-4">
+    <div class="section-header mb-4">
+        <h2 class="fw-bold text-uppercase m-0" style="font-size: 2.2rem;">Bộ lọc sản phẩm</h2>
+        <div style="height: 10px; width: 250px; background: var(--neo-border); margin-top: 5px;"></div>
+    </div>
+
+    <form id="formSearch" action="~/Product/SearchResult" method="get">
+        <div class="search-advanced-wrapper">
+            <select name="CategoryID" class="search-input-neo select-category" onchange="doSearch(1)">
+                <option value="0">TẤT CẢ LOẠI</option>
+                @foreach (var c in categories)
+                {
+                    <option value="@c.CategoryID" selected="@(c.CategoryID == Model.CategoryID)">
+                        @c.CategoryName.ToUpper()
+                    </option>
+                }
+            </select>
+
+            <input type="text" name="SearchValue" class="search-input-neo input-text-main"
+                   placeholder="Nhập tên sản phẩm..." value="@Model.SearchValue">
+
+            <div class="price-filter-group">
+                <input type="number" name="MinPrice" class="input-price-neo"
+                       placeholder="Giá từ" value="@(Model.MinPrice > 0 ? Model.MinPrice.ToString() : "")">
+                <span class="price-separator fw-bold">-</span>
+                <input type="number" name="MaxPrice" class="input-price-neo"
+                       placeholder="Đến giá" value="@(Model.MaxPrice > 0 ? Model.MaxPrice.ToString() : "")">
+            </div>
+
+            <button type="submit" class="btn-search-submit">
+                <i class="bi bi-search fs-5 me-2"></i>TÌM KIẾM
+            </button>
+        </div>
+        <input type="hidden" name="PageSize" value="@Model.PageSize" />
+    </form>
+
+    <div id="searchResult" class="mt-5">
+        @* Kết quả Ajax sẽ đổ vào đây *@
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Hàm tìm kiếm và phân trang
+        function doSearch(page) {
+            var form = $("#formSearch");
+            var searchUrl = "@Url.Content("~/Product/SearchResult")";
+            var postData = form.serializeArray();
+
+            // Đảm bảo truyền đúng tham số Page cho Server
+            postData.push({ name: "Page", value: page });
+
+            // 1. CẬP NHẬT URL TRÊN THANH ĐỊA CHỈ
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.set('page', page);
+            window.history.pushState({ page: page }, '', currentUrl);
+
+            $.ajax({
+                url: searchUrl,
+                type: "GET",
+                data: postData,
+                success: function (data) {
+                    $("#searchResult").html(data);
+
+                    // 2. KHÔI PHỤC VỊ TRÍ CUỘN
+                    const savedScroll = sessionStorage.getItem('last_scroll');
+                    if (savedScroll) {
+                        setTimeout(function() {
+                            $('html, body').animate({ scrollTop: savedScroll }, 600);
+                            sessionStorage.removeItem('last_scroll');
+                        }, 100);
+                    }
+                },
+                error: function () {
+                    $("#searchResult").html(`<div class="alert alert-danger border-4 border-dark rounded-0 fw-bold text-center">LỖI KẾT NỐI</div>`);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pageInUrl = urlParams.get('page');
+
+            if (pageInUrl) {
+                doSearch(parseInt(pageInUrl));
+            } else {
+                doSearch(1);
+            }
+
+            window.onpopstate = function(event) {
+                const params = new URLSearchParams(window.location.search);
+                const page = params.get('page') || 1;
+                doSearchNoPush(parseInt(page));
+            };
+        });
+
+        function doSearchNoPush(page) {
+            var form = $("#formSearch");
+            var postData = form.serializeArray();
+            postData.push({ name: "Page", value: page });
+            $.ajax({
+                url: "@Url.Content("~/Product/SearchResult")",
+                type: "GET",
+                data: postData,
+                success: function (data) {
+                    $("#searchResult").html(data);
+                }
+            });
+        }
+    </script>
+}

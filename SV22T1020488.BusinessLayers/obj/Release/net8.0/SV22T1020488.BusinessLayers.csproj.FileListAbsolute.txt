@@ -10,6 +10,7 @@ D:\Visual\SV22T1020488\SV22T1020488.BusinessLayers\obj\Release\net8.0\SV22T10204
 D:\Visual\SV22T1020488\SV22T1020488.BusinessLayers\obj\Release\net8.0\SV22T1020488.BusinessLayers.AssemblyInfoInputs.cache
 D:\Visual\SV22T1020488\SV22T1020488.BusinessLayers\obj\Release\net8.0\SV22T1020488.BusinessLayers.AssemblyInfo.cs
 D:\Visual\SV22T1020488\SV22T1020488.BusinessLayers\obj\Release\net8.0\SV22T1020488.BusinessLayers.csproj.CoreCompileInputs.cache
+D:\Visual\SV22T1020488\SV22T1020488.BusinessLayers\obj\Release\net8.0\SV22T1020488.BusinessLayers.sourcelink.json
 D:\Visual\SV22T1020488\SV22T1020488.BusinessLayers\obj\Release\net8.0\SV22T102.3F955D3A.Up2Date
 D:\Visual\SV22T1020488\SV22T1020488.BusinessLayers\obj\Release\net8.0\SV22T1020488.BusinessLayers.dll
 D:\Visual\SV22T1020488\SV22T1020488.BusinessLayers\obj\Release\net8.0\refint\SV22T1020488.BusinessLayers.dll

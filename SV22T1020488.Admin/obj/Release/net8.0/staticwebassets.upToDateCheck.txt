@@ -3,6 +3,9 @@ wwwroot\favicon.ico
 wwwroot\images\employees\24bf071b-528e-4cef-872d-3d727c8b2f7c.webp
 wwwroot\images\employees\a6704d14-bf0d-455d-a818-4813159819c7.jpg
 wwwroot\images\employees\nophoto.png
+wwwroot\images\products\639109360444346073_133849377495700679.jpg
+wwwroot\images\products\639109360652812562_133869982646327563.jpg
+wwwroot\images\products\639109360847709538_hhh,png.webp
 wwwroot\images\products\demo.png
 wwwroot\images\products\nophoto.png
 wwwroot\js\site.js

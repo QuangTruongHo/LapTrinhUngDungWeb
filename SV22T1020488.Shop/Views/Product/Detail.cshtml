@@ -1,0 +1,270 @@
+﻿@model SV22T1020488.Models.Catalog.Product
+@{
+    ViewBag.Title = Model?.ProductName ?? "Chi tiết sản phẩm";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --neo-border: #1a1a1a;
+        --neo-shadow: #000000;
+        --neo-yellow: #f4d03f;
+        --neo-pink: #ffafcc;
+        --neo-blue: #8ecae6;
+        --neo-cyan: #219ebc;
+        --neo-bg: #e0f2fe;
+    }
+
+    body {
+        background-color: #8ecae6;
+        background-image: linear-gradient(135deg, #8ecae6 0%, #ffafcc 100%);
+        font-family: 'Space Mono', monospace;
+        color: var(--neo-border);
+        min-height: 100vh;
+        padding: 40px 15px;
+    }
+
+    /* THU NHỎ KHUNG CHI TIẾT XUỐNG 820PX */
+    .detail-wrapper {
+        background: var(--neo-bg);
+        border: 7px solid var(--neo-border);
+        padding: 50px 30px 30px 30px;
+        box-shadow: 12px 12px 0px var(--neo-shadow);
+        max-width: 820px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .btn-back-top {
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        background: white;
+        color: var(--neo-border);
+        z-index: 10;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+
+    .product-img-box {
+        background: white;
+        border: 5px solid var(--neo-border);
+        padding: 10px;
+        box-shadow: 8px 8px 0px var(--neo-cyan);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 280px; /* Thu nhỏ chiều cao ảnh */
+    }
+
+        .product-img-box img {
+            max-height: 240px;
+            width: auto;
+            object-fit: contain;
+        }
+
+    .breadcrumb-neo {
+        background: var(--neo-yellow);
+        border: 3px solid var(--neo-border);
+        display: inline-flex;
+        padding: 2px 10px;
+        margin-bottom: 8px;
+        box-shadow: 3px 3px 0px var(--neo-border);
+        font-size: 0.75rem;
+    }
+
+        .breadcrumb-neo a {
+            color: var(--neo-border);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+    .product-title {
+        font-size: 1.8rem; /* Thu nhỏ font chữ tiêu đề */
+        font-weight: 900;
+        text-transform: uppercase;
+        line-height: 1.1;
+        margin-bottom: 8px;
+        color: var(--neo-border);
+    }
+
+    .price-tag {
+        background: var(--neo-pink);
+        border: 3px solid var(--neo-border);
+        display: inline-block;
+        padding: 4px 12px;
+        font-size: 1.3rem;
+        font-weight: 900;
+        box-shadow: 4px 4px 0px var(--neo-border);
+        margin: 5px 0;
+    }
+
+    .total-price-box {
+        margin-top: 5px;
+        font-size: 1rem;
+        font-weight: 900;
+        color: var(--neo-cyan);
+        text-transform: uppercase;
+    }
+
+    .qty-group-neo {
+        display: flex;
+        border: 3px solid var(--neo-border);
+        box-shadow: 4px 4px 0px var(--neo-border);
+        width: fit-content;
+        background: white;
+        height: 40px; /* Cố định chiều cao cụm tăng giảm */
+    }
+
+    .btn-qty {
+        width: 36px;
+        height: 100%;
+        background: #eee;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+        .btn-qty:hover {
+            background: var(--neo-yellow);
+        }
+
+    .input-qty-neo {
+        width: 45px;
+        border: none;
+        border-left: 3px solid var(--neo-border);
+        border-right: 3px solid var(--neo-border);
+        text-align: center;
+        font-weight: 900;
+        height: 100%;
+    }
+
+    .btn-neo {
+        border: 3px solid var(--neo-border);
+        padding: 8px 20px;
+        font-weight: 900;
+        text-transform: uppercase;
+        box-shadow: 5px 5px 0px var(--neo-shadow);
+        transition: 0.1s;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-neo:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px var(--neo-shadow);
+        }
+
+    /* ĐIỀU CHỈNH NÚT THÊM VÀO GIỎ CAO BẰNG NÚT SỐ LƯỢNG */
+    .btn-add-cart {
+        background: var(--neo-cyan);
+        color: white;
+        width: 100%;
+        height: 40px; /* Khớp chiều cao 40px với .qty-group-neo */
+        justify-content: center;
+        padding: 0 15px; /* Bỏ padding top/bottom để height kiểm soát */
+    }
+
+    .description-box {
+        background: white;
+        border: 3px solid var(--neo-border);
+        padding: 10px;
+        margin-top: 10px;
+        box-shadow: 4px 4px 0px var(--neo-border);
+    }
+</style>
+
+<div class="detail-wrapper">
+    <a href="javascript:void(0)" onclick="window.history.back();" class="btn-neo btn-back-top" style="text-decoration: none;">
+        <i class="bi bi-arrow-left"></i> QUAY LẠI
+    </a>
+
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-5">
+            <div class="product-img-box">
+                <img src="@Url.Content("~/images/products/" + (string.IsNullOrEmpty(Model?.Photo) ? "no-image.jpg" : Model.Photo))"
+                     alt="@Model?.ProductName"
+                     onerror="this.src='https://cdn-icons-png.flaticon.com/512/679/679821.png';">
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="breadcrumb-neo">
+                <a href="~/">TRANG CHỦ</a> &nbsp;/&nbsp; <a href="~/Product">SẢN PHẨM</a>
+            </div>
+
+            <h1 class="product-title">@Model?.ProductName</h1>
+            <div class="d-flex gap-2">
+                <span class="badge bg-dark rounded-0 px-2 py-1 text-uppercase" style="font-size: 0.65rem;">Mã SP: #@Model?.ProductID</span>
+                <span class="badge bg-secondary rounded-0 px-2 py-1 text-uppercase" style="font-size: 0.65rem;">Đơn vị: @Model?.Unit</span>
+            </div>
+
+            <input type="hidden" id="unitPrice" value="@Model?.Price" />
+
+            <div class="price-tag">
+                @Model?.Price.ToString("N0") VNĐ
+            </div>
+
+            <div class="description-box">
+                <p class="mb-0 fw-bold text-secondary" style="white-space: pre-wrap; font-size: 0.8rem; max-height: 70px; overflow-y: auto;">
+                    @(string.IsNullOrEmpty(Model?.ProductDescription) ? "Thông tin sản phẩm đang được cập nhật..." : Model.ProductDescription)
+                </p>
+            </div>
+
+            <form action="~/Cart/AddToCart" method="post" class="mt-3" id="formAddToCart">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model?.ProductID">
+
+                <div class="row align-items-end g-3">
+                    <div class="col-sm-5">
+                        <label class="d-block fw-bold text-uppercase mb-1 small" style="font-size: 0.7rem;">Số lượng:</label>
+                        <div class="qty-group-neo">
+                            <button type="button" class="btn-qty" onclick="changeQty(-1)">-</button>
+                            <input type="number" id="quantity" name="quantity" value="1" min="1" class="input-qty-neo" readonly>
+                            <button type="button" class="btn-qty" onclick="changeQty(1)">+</button>
+                        </div>
+                        <div class="total-price-box">
+                            TỔNG: <span id="dynamicTotal">@Model?.Price.ToString("N0")</span> VNĐ
+                        </div>
+                    </div>
+
+                    <div class="col-sm-7">
+                        <button type="submit" class="btn-neo btn-add-cart">
+                            <i class="bi bi-cart-plus-fill"></i> THÊM VÀO GIỎ
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changeQty(val) {
+            let qtyInput = document.getElementById('quantity');
+            let unitPrice = parseFloat(document.getElementById('unitPrice').value);
+            let displayTotal = document.getElementById('dynamicTotal');
+
+            let newVal = parseInt(qtyInput.value) + val;
+
+            if (newVal >= 1) {
+                qtyInput.value = newVal;
+                let total = newVal * unitPrice;
+                displayTotal.innerText = total.toLocaleString('en-US');
+            }
+        }
+
+        document.querySelectorAll('.breadcrumb-neo a').forEach(link => {
+            link.addEventListener('click', function() {
+                sessionStorage.setItem('last_scroll', window.scrollY);
+            });
+        });
+    </script>
+}

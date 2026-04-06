@@ -45,6 +45,51 @@ namespace SV22T1020488.DataLayers.SQLServer
             }
         }
 
+
+       
+
+        // 2. Đăng nhập Shop (Bảng Customers)
+        public async Task<UserAccount?> AuthorizeCustomerAsync(string userName, string password)
+        {
+            using (var cn = new SqlConnection(_connectionString))
+            {
+                var sql = @"SELECT CAST(CustomerID AS NVARCHAR) AS UserId, Email AS UserName, 
+                        CustomerName AS DisplayName, N'' AS Photo, N'customer' AS RoleNames
+                        FROM Customers WHERE Email = @userName AND Password = @password 
+                        AND (IsLocked = 0 OR IsLocked IS NULL)";
+                return await cn.QueryFirstOrDefaultAsync<UserAccount>(sql, new { userName, password });
+            }
+        }
+
+        // 3. Đổi mật khẩu Khách hàng
+        public async Task<bool> ChangeCustomerPasswordAsync(string userName, string password)
+        {
+            using (var cn = new SqlConnection(_connectionString))
+            {
+                var sql = "UPDATE Customers SET Password = @password WHERE Email = @userName";
+                return await cn.ExecuteAsync(sql, new { userName, password }) > 0;
+            }
+        }
+
+        // 4. Đăng ký Khách hàng mới (Tách biệt hoàn toàn với Employees)
+        public async Task<bool> RegisterCustomerAsync(string customerName, string email, string password)
+        {
+            using (var cn = new SqlConnection(_connectionString))
+            {
+                var sql = @"INSERT INTO Customers (CustomerName, ContactName, Email, Password, IsLocked)
+                        VALUES (@customerName, @customerName, @email, @password, 0)";
+                return await cn.ExecuteAsync(sql, new { customerName, email, password }) > 0;
+            }
+        }
+
+        public async Task<bool> CheckCustomerEmailExistsAsync(string email)
+        {
+            using (var cn = new SqlConnection(_connectionString))
+            {
+                var sql = "SELECT COUNT(*) FROM Customers WHERE Email = @email";
+                return await cn.ExecuteScalarAsync<int>(sql, new { email }) > 0;
+            }
+        }
         /// <summary>
         /// Đổi mật khẩu cho nhân viên
         /// </summary>
@@ -106,5 +151,7 @@ namespace SV22T1020488.DataLayers.SQLServer
                 return count > 0;
             }
         }
+
+
     }
 }

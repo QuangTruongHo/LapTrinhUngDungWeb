@@ -166,6 +166,26 @@ namespace SV22T1020488.BusinessLayers
             return await orderDB.UpdateAsync(order);
         }
 
+
+        /// <summary>
+        /// Cập nhật thông tin giao hàng (địa chỉ và tỉnh thành) cho đơn hàng.
+        /// Chỉ cho phép cập nhật khi đơn hàng đang ở trạng thái Mới (New).
+        /// </summary>
+        public static async Task<bool> UpdateDeliveryInfoAsync(int orderID, string deliveryAddress, string deliveryProvince)
+        {
+            var order = await orderDB.GetAsync(orderID);
+            if (order == null)
+                return false;
+
+            // Chỉ cho phép sửa nếu đơn hàng đang ở trạng thái New
+            if (order.Status != OrderStatusEnum.New)
+                return false;
+
+            order.DeliveryAddress = deliveryAddress;
+            order.DeliveryProvince = deliveryProvince;
+
+            return await orderDB.UpdateAsync(order);
+        }
         #endregion
 
         #region Order Detail

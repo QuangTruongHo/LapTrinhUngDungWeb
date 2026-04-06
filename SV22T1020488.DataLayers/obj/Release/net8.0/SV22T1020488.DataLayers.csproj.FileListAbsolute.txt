@@ -8,6 +8,7 @@ D:\Visual\SV22T1020488\SV22T1020488.DataLayers\obj\Release\net8.0\SV22T1020488.D
 D:\Visual\SV22T1020488\SV22T1020488.DataLayers\obj\Release\net8.0\SV22T1020488.DataLayers.AssemblyInfoInputs.cache
 D:\Visual\SV22T1020488\SV22T1020488.DataLayers\obj\Release\net8.0\SV22T1020488.DataLayers.AssemblyInfo.cs
 D:\Visual\SV22T1020488\SV22T1020488.DataLayers\obj\Release\net8.0\SV22T1020488.DataLayers.csproj.CoreCompileInputs.cache
+D:\Visual\SV22T1020488\SV22T1020488.DataLayers\obj\Release\net8.0\SV22T1020488.DataLayers.sourcelink.json
 D:\Visual\SV22T1020488\SV22T1020488.DataLayers\obj\Release\net8.0\SV22T102.F8B89102.Up2Date
 D:\Visual\SV22T1020488\SV22T1020488.DataLayers\obj\Release\net8.0\SV22T1020488.DataLayers.dll
 D:\Visual\SV22T1020488\SV22T1020488.DataLayers\obj\Release\net8.0\refint\SV22T1020488.DataLayers.dll

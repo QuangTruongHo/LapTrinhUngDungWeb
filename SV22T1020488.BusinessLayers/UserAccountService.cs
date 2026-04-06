@@ -23,9 +23,28 @@ namespace SV22T1020488.BusinessLayers
         /// </summary>
         public static async Task<UserAccount?> AuthorizeAsync(string userName, string password)
         {
+            // CHỈ GỌI THẾ NÀY, không viết SQL ở đây
             return await userAccountDB.AuthorizeAsync(userName, password);
         }
 
+        // Cho Shop gọi (MỚI)
+        public static async Task<UserAccount?> AuthorizeCustomerAsync(string userName, string password)
+        {
+            return await userAccountDB.AuthorizeCustomerAsync(userName, password);
+        }
+        // Gọi cho Shop
+        
+
+        public static async Task<bool> RegisterCustomerAsync(string name, string email, string pass)
+            => await userAccountDB.RegisterCustomerAsync(name, email, pass);
+
+        public static async Task<bool> ChangeCustomerPasswordAsync(string email, string pass)
+            => await userAccountDB.ChangeCustomerPasswordAsync(email, pass);
+        public static async Task<bool> CheckCustomerEmailExistsAsync(string email)
+        {
+            // Gọi xuống Repository đã được khởi tạo
+            return await userAccountDB.CheckCustomerEmailExistsAsync(email);
+        }
         /// <summary>
         /// Đổi mật khẩu tài khoản
         /// </summary>

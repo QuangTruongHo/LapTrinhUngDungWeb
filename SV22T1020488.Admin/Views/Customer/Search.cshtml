@@ -34,21 +34,23 @@
                         <td class="text-center">
                             @if (item.IsLocked)
                             {
-                                <span class="badge bg-success">Hoạt động</span>
+                                @* Nếu bị khóa: dùng màu đỏ (danger) *@
+                                <span class="badge bg-danger">Bị khóa</span>
                             }
                             else
                             {
-                                <span class="badge bg-success">Bị khóa</span>
+                                @* Nếu không khóa: dùng màu xanh (success) *@
+                                <span class="badge bg-success">Hoạt động</span>
                             }
                         </td>
                         <td class="text-center text-nowrap">
-                            <a href="~/Customer/Edit/@item.CustomerID" class="btn btn-sm btn-primary">
+                            <a href="~/Customer/Edit/@item.CustomerID" class="btn btn-sm btn-primary" title="Sửa">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="~/Customer/Delete/@item.CustomerID" class="btn btn-sm btn-danger">
+                            <a href="~/Customer/Delete/@item.CustomerID" class="btn btn-sm btn-danger" title="Xóa">
                                 <i class="bi bi-trash"></i>
                             </a>
-                            <a href="~/Customer/ChangePassword/@item.CustomerID" class="btn btn-sm btn-warning ms-2">
+                            <a href="~/Customer/ChangePassword/@item.CustomerID" class="btn btn-sm btn-warning ms-2" title="Đổi mật khẩu">
                                 <i class="bi bi-key"></i>
                             </a>
                         </td>
@@ -59,7 +61,6 @@
     </div>
 
     <div class="card-footer">
-        <!-- Pagination -->
         <ul class="pagination justify-content-center">
             @foreach (var p in Model.GetDisplayPages())
             {
@@ -85,8 +86,6 @@
                     </li>
                 }
             }
-
-
         </ul>
     </div>
 </div>

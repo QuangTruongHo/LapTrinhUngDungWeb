@@ -31,9 +31,13 @@ namespace SV22T1020488.DataLayers.SQLServer
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                var sql = @"INSERT INTO Customers(CustomerName, ContactName, Province, Address, Phone, Email, IsLocked)
-                            VALUES(@CustomerName, @ContactName, @Province, @Address, @Phone, @Email, @IsLocked);
-                            SELECT SCOPE_IDENTITY();";
+
+                // ĐÃ SỬA: Thêm @Password vào phần VALUES để khớp với 8 cột bên trên
+                var sql = @"INSERT INTO Customers(CustomerName, ContactName, Province, Address, Phone, Email, Password, IsLocked)
+                    VALUES(@CustomerName, @ContactName, @Province, @Address, @Phone, @Email, @Password, @IsLocked);
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                // Dapper sẽ tự động lấy giá trị từ object 'data' để điền vào các tham số @
                 var id = await connection.ExecuteScalarAsync<int>(sql, data);
                 return id;
             }
@@ -47,8 +51,9 @@ namespace SV22T1020488.DataLayers.SQLServer
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                var sql = @"DELETE FROM Customers WHERE CustomerID = @CustomerID";
-                var rowsAffected = await connection.ExecuteAsync(sql, new { CustomerID = id });
+                var sql = @"DELETE FROM Customers WHERE CustomerID = @id";
+                // Đã sửa: Tên tham số trong object new { id } phải khớp với @id trong SQL
+                var rowsAffected = await connection.ExecuteAsync(sql, new { id });
                 return rowsAffected > 0;
             }
         }
@@ -61,24 +66,24 @@ namespace SV22T1020488.DataLayers.SQLServer
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                var sql = @"SELECT * FROM Customers WHERE CustomerID = @CustomerID";
-                return await connection.QueryFirstOrDefaultAsync<Customer>(sql, new { CustomerID = id });
+                var sql = @"SELECT * FROM Customers WHERE CustomerID = @id";
+                return await connection.QueryFirstOrDefaultAsync<Customer>(sql, new { id });
             }
         }
 
         /// <summary>
-        /// Kiểm tra xem khách hàng có đang phát sinh dữ liệu liên quan (ví dụ: có đơn hàng) hay không
+        /// Kiểm tra xem khách hàng có đang phát sinh dữ liệu liên quan hay không
         /// </summary>
         public async Task<bool> IsUsedAsync(int id)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                var sql = @"IF EXISTS (SELECT 1 FROM Orders WHERE CustomerID = @CustomerID)
+                var sql = @"IF EXISTS (SELECT 1 FROM Orders WHERE CustomerID = @id)
                                 SELECT 1
                             ELSE
                                 SELECT 0";
-                var result = await connection.ExecuteScalarAsync<int>(sql, new { CustomerID = id });
+                var result = await connection.ExecuteScalarAsync<int>(sql, new { id });
                 return result == 1;
             }
         }
@@ -146,6 +151,7 @@ namespace SV22T1020488.DataLayers.SQLServer
                                 Address = @Address, 
                                 Phone = @Phone, 
                                 Email = @Email,
+                                Password = @Password,
                                 IsLocked = @IsLocked
                             WHERE CustomerID = @CustomerID";
                 var rowsAffected = await connection.ExecuteAsync(sql, data);
@@ -155,21 +161,34 @@ namespace SV22T1020488.DataLayers.SQLServer
 
         /// <summary>
         /// Kiểm tra xem địa chỉ Email đã được sử dụng bởi khách hàng khác hay chưa.
-        /// Trả về true nếu email hợp lệ (chưa bị trùng), ngược lại trả về false.
+        /// Trả về true nếu email hợp lệ (KHÔNG trùng với người khác), ngược lại trả về false.
         /// </summary>
         public async Task<bool> ValidateEmailAsync(string email, int id = 0)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                // Nếu ID = 0: Kiểm tra xem email đã tồn tại trong bảng chưa
-                // Nếu ID <> 0: Kiểm tra xem email đã tồn tại ở bản ghi khác (trừ bản ghi hiện tại) chưa
+                // Logic: Nếu tồn tại bản ghi có Email này mà ID lại khác ID hiện tại -> SELECT 0 (Không hợp lệ)
                 var sql = @"IF EXISTS (SELECT 1 FROM Customers WHERE Email = @Email AND CustomerID <> @CustomerID)
                                 SELECT 0
                             ELSE
                                 SELECT 1";
                 var result = await connection.ExecuteScalarAsync<int>(sql, new { Email = email, CustomerID = id });
                 return result == 1;
+            }
+        }
+        /// <summary>
+        /// Thực thi việc đổi mật khẩu khách hàng từ interface ICustomerRepository
+        /// </summary>
+        public async Task<bool> ChangePasswordAsync(int customerId, string newPassword)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                // newPassword ở đây đã là chuỗi MD5 từ Controller truyền xuống
+                var sql = @"UPDATE Customers SET Password = @pw WHERE CustomerID = @id";
+                var rowsAffected = await connection.ExecuteAsync(sql, new { pw = newPassword, id = customerId });
+                return rowsAffected > 0;
             }
         }
     }

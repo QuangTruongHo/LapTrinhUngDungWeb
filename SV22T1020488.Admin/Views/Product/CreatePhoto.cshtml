@@ -14,19 +14,22 @@
             <div class="card-body">
                 <p class="text-muted">Sản phẩm: <strong>@ViewBag.ProductName</strong></p>
 
-                <form action="~/Product/SavePhoto" method="post">
+                @* Thêm enctype để hỗ trợ upload file *@
+                <form action="~/Product/SavePhoto" method="post" enctype="multipart/form-data">
                     <input type="hidden" asp-for="PhotoID" />
                     <input type="hidden" asp-for="ProductID" />
-                    @* Hidden field lưu chuỗi Base64 gửi lên Server *@
+
+                    @* Hidden field lưu tên file ảnh hiện tại hoặc chuỗi cũ *@
                     <input type="hidden" asp-for="Photo" id="PhotoData" />
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Chọn ảnh</label>
-                        <input type="file" id="filePicker" class="form-control" accept="image/*" onchange="convertToBase64()" />
+                        @* Thêm name="uploadPhoto" để Controller nhận file thông qua IFormFile *@
+                        <input type="file" name="uploadPhoto" id="filePicker" class="form-control" accept="image/*" onchange="previewImage()" />
 
                         <div class="mt-3 text-center">
                             <img id="imgPreview"
-                                 src="@(string.IsNullOrEmpty(Model.Photo) ? Url.Content("~/images/products/nophoto.png") : Model.Photo)"
+                                 src="@(string.IsNullOrEmpty(Model.Photo) ? Url.Content("~/images/products/nophoto.png") : (Model.Photo.StartsWith("data:") ? Model.Photo : Url.Content($"~/images/products/{Model.Photo}")))"
                                  class="img-thumbnail"
                                  style="max-height: 250px; border: 2px dashed #dee2e6;" />
                         </div>
@@ -68,16 +71,18 @@
 </div>
 
 <script>
-    function convertToBase64() {
-        var file = document.getElementById('filePicker').files[0];
+    function previewImage() {
+        var filePicker = document.getElementById('filePicker');
+        var file = filePicker.files[0];
+
         if (file) {
-            var reader = new FileReader();
-            reader.onloadend = function () {
-                var base64String = reader.result;
-                document.getElementById('PhotoData').value = base64String;
-                document.getElementById('imgPreview').src = base64String;
-            }
-            reader.readAsDataURL(file);
+            // Sử dụng URL tạm thời để hiển thị (nhanh và nhẹ hơn Base64)
+            var previewUrl = window.URL.createObjectURL(file);
+            document.getElementById('imgPreview').src = previewUrl;
+
+            // Khi chọn file mới, xóa giá trị ở hidden PhotoData
+            // để Controller biết cần ưu tiên xử lý file từ uploadPhoto
+            document.getElementById('PhotoData').value = "";
         }
     }
 </script>

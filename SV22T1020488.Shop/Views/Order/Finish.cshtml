@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Đặt hàng thành công";
+}
+
+<div class="container text-center" style="padding: 100px 0;">
+    <div class="neo-card" style="display: inline-block; background: #2ecc71; padding: 50px; border: 4px solid #000; box-shadow: 10px 10px 0px #000;">
+        <h1 class="fw-black text-uppercase" style="font-size: 3rem;">🎉 THÀNH CÔNG!</h1>
+        <p class="lead fw-bold mt-3">Cảm ơn bạn đã mua hàng tại hệ thống của chúng tôi.</p>
+        <div class="bg-white border border-dark border-3 p-3 my-4">
+            <span class="h4 fw-bold">Mã đơn hàng của bạn: #@ViewBag.OrderID</span>
+        </div>
+        <p>Nhân viên sẽ liên hệ với bạn qua số điện thoại để xác nhận trong ít phút.</p>
+
+        <div class="mt-5">
+            <a href="/" class="btn btn-dark btn-lg px-5 fw-bold" style="border-radius: 0; border: 3px solid #000;">
+                TIẾP TỤC MUA SẮM
+            </a>
+        </div>
+    </div>
+</div>

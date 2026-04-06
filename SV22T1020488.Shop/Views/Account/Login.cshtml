@@ -1,28 +1,280 @@
 ﻿@{
-    Layout = "_Layout";
+    Layout = null;
 }
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white text-center">
-                <h4>ĐĂNG NHẬP</h4>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Tạp hóa của Trường</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --neo-border: #1a1a1a;
+            --neo-shadow: #000000;
+            --neo-bg: #f4eee0;
+            --neo-yellow: #f4d03f;
+            --neo-pink: #f8bbd0;
+            --neo-blue: #a6c1ee;
+            --neo-red: #ff5e5e;
+            --neo-green: #58cc02;
+        }
+
+        body {
+            background-color: #fbc2eb;
+            background-image: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Space Mono', monospace;
+            color: var(--neo-border);
+        }
+
+        .login-card {
+            background: var(--neo-bg);
+            border: 6px solid var(--neo-border);
+            box-shadow: 20px 20px 0px var(--neo-shadow);
+            max-width: 900px;
+            width: 95%;
+            display: flex;
+            align-items: stretch;
+        }
+
+        .side-image {
+            background: var(--neo-yellow);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            border-right: 6px solid var(--neo-border);
+        }
+
+            .side-image img {
+                width: 100%;
+                max-width: 300px;
+                filter: drop-shadow(10px 10px 0px var(--neo-border));
+                margin-bottom: 20px;
+            }
+
+            .side-image h3 {
+                font-weight: 900;
+                text-transform: uppercase;
+                text-align: center;
+                background: white;
+                padding: 10px;
+                border: 3px solid var(--neo-border);
+                box-shadow: 5px 5px 0px var(--neo-border);
+            }
+
+        .form-section {
+            flex: 1;
+            padding: 40px 50px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+            .form-section h2 {
+                font-weight: 900;
+                text-transform: uppercase;
+                font-size: 2.5rem;
+                margin-bottom: 30px;
+                display: inline-block;
+                width: fit-content;
+                border-bottom: 8px solid var(--neo-pink);
+            }
+
+        .form-label-custom {
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control {
+            border-radius: 0px;
+            border: 3px solid var(--neo-border);
+            padding: 12px 15px;
+            box-shadow: 4px 4px 0px var(--neo-border);
+            transition: 0.1s;
+        }
+
+            .form-control:focus {
+                box-shadow: 6px 6px 0px var(--neo-border);
+                transform: translate(-2px, -2px);
+                border-color: var(--neo-border);
+                background: #fff;
+            }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 10;
+            font-size: 1.2rem;
+        }
+
+        .btn-submit {
+            background-color: var(--neo-border);
+            color: white;
+            padding: 15px;
+            font-weight: 900;
+            text-transform: uppercase;
+            width: 100%;
+            margin-top: 25px;
+            box-shadow: 6px 6px 0px var(--neo-pink);
+            border: none;
+            transition: 0.1s;
+        }
+
+            .btn-submit:hover {
+                transform: translate(-2px, -2px);
+                box-shadow: 8px 8px 0px var(--neo-pink);
+                color: white;
+            }
+
+        /* ALERT NEO-BRUTALISM */
+        .alert-neo {
+            border-radius: 0;
+            border: 3px solid var(--neo-border);
+            font-weight: 700;
+            box-shadow: 4px 4px 0px var(--neo-border);
+            margin-bottom: 25px;
+            padding: 12px;
+        }
+
+        .alert-neo-error {
+            background: var(--neo-red);
+            color: white;
+        }
+
+        .alert-neo-success {
+            background: var(--neo-green);
+            color: white;
+        }
+
+        .text-blue {
+            color: var(--neo-border);
+            text-decoration: underline;
+            font-weight: 900;
+        }
+
+        @@media (max-width: 768px) {
+            .side-image {
+                display: none;
+            }
+
+            .login-card {
+                max-width: 450px;
+            }
+
+            .form-section {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="side-image">
+            <img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" alt="Shopping Illustration">
+            <h3>TẠP HÓA <br> CỦA TRƯỜNG</h3>
+        </div>
+
+        <div class="form-section">
+            <div class="text-center mb-4">
+                <h2>ĐĂNG NHẬP</h2>
             </div>
-            <div class="card-body">
-                <form action="~/Account/Login" method="post">
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mật khẩu</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Vào cửa hàng</button>
-                </form>
-                <div class="mt-3 text-center">
-                    <a href="~/Account/Register">Chưa có tài khoản? Đăng ký ngay</a>
+
+            @* 1. HIỂN THỊ LỖI TỪ TEMPDATA (LỖI ĐĂNG NHẬP SAI) *@
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert-neo alert-neo-error">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
                 </div>
-            </div>
+            }
+
+            @* 2. HIỂN THỊ THÀNH CÔNG (ĐĂNG KÝ XONG CHẲNG HẠN) *@
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert-neo alert-neo-success">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                </div>
+            }
+
+            @* 3. HIỂN THỊ LỖI VALIDATION (TRỐNG TRƯỜNG DỮ LIỆU) *@
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert-neo alert-neo-error py-2 small">
+                    @Html.ValidationSummary(true, "") @* Chỉ hiện lỗi chung, không hiện lỗi từng field ở đây *@
+                </div>
+            }
+
+            <form action="~/Account/Login" method="post" id="loginForm">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-4">
+                    <label class="form-label-custom">Tên đăng nhập</label>
+                    <input type="text" name="username" class="form-control" placeholder="TÀI KHOẢN CỦA BẠN..." required>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label-custom">Mật khẩu</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="********" required>
+                        <i class="bi bi-eye-slash toggle-password" onclick="togglePassword()"></i>
+                    </div>
+                </div>
+
+                <div class="text-end mb-4">
+                    <a href="#" class="text-muted small fw-bold text-decoration-none">QUÊN MẬT KHẨU?</a>
+                </div>
+
+                <button type="submit" class="btn-submit">VÀO CỬA HÀNG NGAY</button>
+
+                <p class="text-center mt-5 small fw-bold">
+                    CHƯA CÓ TÀI KHOẢN? <br>
+                    <a href="~/Account/Register" class="text-blue">ĐĂNG KÝ TẠI ĐÂY</a>
+                </p>
+            </form>
         </div>
     </div>
-</div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.querySelector('.toggle-password');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            }
+        }
+
+        // Tự động ẩn thông báo sau 5 giây để tránh bị "kẹt" thông báo cũ
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-neo');
+            alerts.forEach(function(alert) {
+                alert.style.display = 'none';
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

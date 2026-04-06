@@ -1,174 +1,113 @@
-﻿@using SV22T1020488.Shop
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - My Store</title>
+    <title>@ViewData["Title"] - Bách Hóa Tổng Hợp</title>  
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/679/679821.png">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <style>
+        :root {
+            --neo-border: #1a1a1a;
+            --neo-shadow: #000000;
+            --neo-yellow: #f4d03f;
+            --neo-pink: #f8bbd0;
+            --neo-blue: #a6c1ee;
+            --neo-bg: #fbc2eb;
+            --neo-green: #2ecc71;
+        }
+
         body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin-bottom: 60px;
-        }
-
-        .navbar {
-            box-shadow: 0 2px 4px rgba(0,0,0,.08);
-        }
-
-        .card-product {
-            transition: 0.3s;
-            border: none;
-            border-radius: 10px;
-        }
-
-            .card-product:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 20px rgba(0,0,0,.12);
-            }
-
-        /* --- CSS CHO HIỆU ỨNG HỘP QUÀ BAY --- */
-        .fly-gift-box {
-            position: absolute;
-            z-index: 10000;
-            width: 40px;
-            height: 40px;
-            background-color: #ffc107;
-            color: white;
+            background-color: var(--neo-bg);
+            background-image: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            font-family: 'Space Mono', monospace;
+            color: var(--neo-border);
+            min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            font-size: 20px;
-            pointer-events: none;
+            flex-direction: column;
         }
 
-            .fly-gift-box::after {
-                content: '🎁';
-                font-size: 24px;
-            }
-
-        /* LƯU Ý: Dùng @@ để tránh lỗi "Expected a selector" */
-        @@keyframes shake {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.4);
-                color: #ffc107;
-            }
-
-            100% {
-                transform: scale(1);
-            }
+        /* --- NEO NAVBAR STYLE --- */
+        .neo-nav {
+            background: white;
+            border-bottom: 6px solid var(--neo-border);
+            padding: 15px 0;
+            margin-bottom: 20px;
         }
 
-        .cart-shake {
-            display: inline-block; /* Quan trọng để animation scale hoạt động */
-            animation: shake 0.6s ease-in-out;
-            color: #ffc107 !important;
+        .nav-brand-box {
+            background: var(--neo-yellow);
+            border: 4px solid var(--neo-border);
+            padding: 5px 15px;
+            box-shadow: 4px 4px 0px var(--neo-shadow);
+            font-weight: 700;
+            color: var(--neo-border);
+        }
+
+        .nav-icon-btn {
+            background: white;
+            border: 3px solid var(--neo-border);
+            box-shadow: 4px 4px 0px var(--neo-shadow);
+            padding: 5px 12px;
+            position: relative;
+            transition: all 0.2s;
+            color: var(--neo-border);
+            display: inline-block;
+        }
+
+            .nav-icon-btn:hover {
+                transform: translate(-2px, -2px);
+                box-shadow: 6px 6px 0px var(--neo-shadow);
+                background: var(--neo-pink);
+            }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border: 2px solid var(--neo-border);
+            object-fit: cover;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--neo-green);
+            border: 2px solid var(--neo-border);
+            color: var(--neo-border);
+            font-weight: bold;
+            padding: 2px 6px;
+            font-size: 11px;
+        }
+
+        footer {
+            background: var(--neo-border);
+            color: white;
+            border-top: 5px solid var(--neo-shadow);
+        }
+
+        .dropdown-menu {
+            border: 4px solid var(--neo-border);
+            box-shadow: 8px 8px 0px var(--neo-shadow);
+            border-radius: 0;
         }
     </style>
 </head>
 <body>
-    <header class="sticky-top">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand fw-bold" href="~/">🛍️ MY SHOP</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item"><a class="nav-link" href="~/Product">Sản phẩm</a></li>
-                    </ul>
 
-                    <div class="d-flex align-items-center gap-3">
-                        <a href="~/Cart" class="text-white position-relative d-inline-block text-decoration-none">
-                            <i id="cart-icon" class="bi bi-cart3 fs-4"></i>
-                            <span id="cart-count" class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle">
-                                @(CartHelper.GetCart(Context).Sum(x => x.Quantity))
-                            </span>
-                        </a>
+    @await Html.PartialAsync("_Header")
 
-                        @if (User.Identity?.IsAuthenticated ?? false)
-                        {
-                            <div class="dropdown">
-                                <a class="btn btn-light btn-sm dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                                    Chào, @(User.Identity?.Name ?? "Thành viên")
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                    <li><a class="dropdown-item" href="~/Account/Profile"><i class="bi bi-person me-2"></i>Cá nhân</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="~/Account/Logout">Đăng xuất</a></li>
-                                </ul>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="btn-group">
-                                <a href="~/Account/Login" class="btn btn-outline-light btn-sm">Đăng nhập</a>
-                                <a href="~/Account/Register" class="btn btn-light btn-sm">Đăng ký</a>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
-
-    <main class="container py-4" style="min-height: 80vh;">
+    <main class="container px-4 flex-grow-1">
         @RenderBody()
     </main>
 
-    <footer class="bg-white border-top py-4 mt-auto">
-        <div class="container text-center text-muted">
-            <p class="mb-0">&copy; 2026 - SV22T1020488 Shop</p>
-        </div>
-    </footer>
+    @await Html.PartialAsync("_Footer")
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        function doFlyToCart(originElement) {
-            const cart = $('#cart-icon');
-            const imgToFly = $(originElement);
-
-            if (imgToFly.length > 0 && cart.length > 0) {
-                const startPos = imgToFly.offset();
-                const endPos = cart.offset();
-
-                const flyer = $('<div class="fly-gift-box"></div>');
-                flyer.css({
-                    'top': startPos.top + (imgToFly.height() / 2) - 20,
-                    'left': startPos.left + (imgToFly.width() / 2) - 20,
-                    'opacity': 1
-                });
-
-                $('body').append(flyer);
-
-                flyer.animate({
-                    'top': endPos.top,
-                    'left': endPos.left,
-                    'width': 10,
-                    'height': 10,
-                    'opacity': 0.4
-                }, 800, function() {
-                    flyer.remove();
-                    cart.addClass('cart-shake');
-                    setTimeout(() => {
-                        cart.removeClass('cart-shake');
-                    }, 600);
-                });
-            }
-        }
-    </script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

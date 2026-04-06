@@ -85,3 +85,4 @@ D:\Visual\SV22T1020488\SV22T1020488.Shop\obj\Release\net8.0\refint\SV22T1020488.
 D:\Visual\SV22T1020488\SV22T1020488.Shop\obj\Release\net8.0\SV22T1020488.Shop.pdb
 D:\Visual\SV22T1020488\SV22T1020488.Shop\obj\Release\net8.0\SV22T1020488.Shop.genruntimeconfig.cache
 D:\Visual\SV22T1020488\SV22T1020488.Shop\obj\Release\net8.0\ref\SV22T1020488.Shop.dll
+D:\Visual\SV22T1020488\SV22T1020488.Shop\obj\Release\net8.0\SV22T1020488.Shop.sourcelink.json

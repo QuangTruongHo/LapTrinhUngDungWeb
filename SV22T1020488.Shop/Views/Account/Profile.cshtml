@@ -1,44 +1,286 @@
-﻿@model SV22T1020488.Shop.Models.ChangePasswordModel
+﻿@model SV22T1020488.Models.Partner.Customer
 @{
-    ViewBag.Title = "Thông tin cá nhân";
+    ViewBag.Title = "Hồ sơ cá nhân - " + Model.CustomerName;
 
-    // Cách gọi an toàn nhất: dùng đầy đủ Namespace đã khai báo ở file C# trên
-    var userData = SV22T1020488.Shop.WebUserData.GetUserData(User) ?? new SV22T1020488.Shop.WebUserData();
+    // LOGIC: Xử lý hiển thị avatar (nếu Model.Photo null thì dùng mặc định)
+    var avatar = "default-avatar.png";
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8">
-            @if (TempData["Message"] != null)
-            {
-                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                    @TempData["Message"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
+<style>
+    :root {
+        --neo-border: #1a1a1a;
+        --neo-shadow: #000000;
+        --neo-bg: #f4eee0;
+        --neo-yellow: #f4d03f;
+        --neo-pink: #f8bbd0;
+        --neo-green: #a3d9c5;
+        --neo-blue: #a6c1ee;
+    }
 
-            <div class="tab-content">
-                <div class="tab-pane fade show active" id="info">
-                    <div class="card shadow-sm p-4">
-                        <h5 class="border-bottom pb-2 mb-4">Cập nhật thông tin</h5>
-                        <form action="~/Account/UpdateProfile" method="post">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Tên đăng nhập / Email:</label>
-                                <input type="text" class="form-control bg-light" value="@userData.UserName" readonly>
-                                <small class="text-muted">Tên đăng nhập không thể thay đổi.</small>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Họ và tên khách hàng:</label>
-                                <input type="text" name="DisplayName" class="form-control" value="@userData.DisplayName" required>
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-                            </div>
-                        </form>
+    body {
+        background-color: #fbc2eb;
+        background-image: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+        font-family: 'Space Mono', monospace;
+    }
+
+    .custom-card {
+        background: white;
+        border: 4px solid var(--neo-border);
+        box-shadow: 12px 12px 0px var(--neo-shadow);
+        overflow: hidden;
+        margin-bottom: 30px;
+        height: 100%;
+    }
+
+    .profile-header-banner {
+        background: var(--neo-blue);
+        height: 120px;
+        border-bottom: 4px solid var(--neo-border);
+        position: relative;
+    }
+
+    .profile-avatar-wrapper {
+        position: absolute;
+        bottom: -50px;
+        left: 40px;
+        background: white;
+        border: 4px solid var(--neo-border);
+        box-shadow: 6px 6px 0px var(--neo-shadow);
+    }
+
+    .profile-avatar-img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    .profile-main-info {
+        padding: 70px 40px 30px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        background: var(--neo-bg);
+    }
+
+    .user-name-title {
+        font-size: 2rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin: 0;
+    }
+
+    .btn-neo-edit {
+        background-color: var(--neo-yellow);
+        color: var(--neo-border);
+        border: 3px solid var(--neo-border);
+        padding: 10px 20px;
+        font-weight: 900;
+        text-transform: uppercase;
+        box-shadow: 4px 4px 0px var(--neo-border);
+        text-decoration: none;
+        transition: 0.1s;
+        display: inline-block;
+    }
+
+        .btn-neo-edit:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px;
+            color: var(--neo-border);
+        }
+
+    .info-label-neo {
+        font-size: 0.8rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #555;
+        margin-bottom: 5px;
+    }
+
+    .info-value-neo {
+        font-size: 1.1rem;
+        font-weight: 700;
+        background: #fff;
+        border: 3px solid var(--neo-border);
+        padding: 10px;
+        margin-bottom: 20px;
+        box-shadow: 4px 4px 0px var(--neo-border);
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+    }
+
+    .list-group-item-neo {
+        border: 3px solid var(--neo-border) !important;
+        margin-bottom: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        background: white;
+        color: var(--neo-border);
+        text-decoration: none;
+        display: block;
+        padding: 12px 15px;
+        transition: 0.2s;
+    }
+
+        .list-group-item-neo:hover {
+            background-color: var(--neo-yellow);
+            transform: translate(-3px, -3px);
+            box-shadow: 5px 5px 0px var(--neo-border);
+            color: var(--neo-border);
+        }
+
+    @@media (max-width: 768px) {
+        .profile-avatar-wrapper
+
+    {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .profile-main-info {
+        padding-top: 90px;
+        text-align: center;
+        justify-content: center;
+    }
+
+    }
+</style>
+
+<div class="container py-5">
+    @* --- HEADER --- *@
+    <div class="custom-card mb-5">
+        <div class="profile-header-banner">
+            <div class="profile-avatar-wrapper">
+                @* LOGIC: Hiển thị ảnh thực tế từ thư mục images/customers *@
+                <img src="~/images/customers/@avatar"
+                     onerror="this.src='https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp'"
+                     class="profile-avatar-img">
+            </div>
+        </div>
+        <div class="profile-main-info">
+            <div>
+                <h1 class="user-name-title">@Model.CustomerName</h1>
+                <span class="badge bg-dark rounded-0 px-3 py-2 mt-2">KHÁCH HÀNG: #@Model.CustomerID</span>
+            </div>
+            <div class="mt-3">
+                @* LOGIC: Điều hướng tới trang chỉnh sửa hồ sơ *@
+                <a href="~/Account/Edit" class="btn-neo-edit">
+                    <i class="bi bi-pencil-square me-2"></i>Sửa hồ sơ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row d-flex align-items-stretch">
+        @* --- CỘT TRÁI: MENU --- *@
+        <div class="col-lg-4 mb-4">
+            <div class="custom-card p-4 h-100">
+                <h5 class="mb-4 fw-bold text-uppercase border-bottom border-dark border-3 pb-2">Quản lý tài khoản</h5>
+                <div class="menu-list-neo">
+                    @* LOGIC: Liên kết tới lịch sử đơn hàng đã làm *@
+                    <a href="~/Order/History" class="list-group-item-neo">
+                        <i class="bi bi-bag-fill me-2"></i> Đơn hàng của tôi
+                    </a>
+                    <button type="button" class="list-group-item-neo w-100 text-start" data-bs-toggle="modal" data-bs-target="#modalChangePassword">
+                        <i class="bi bi-key-fill me-2"></i> Đổi mật khẩu
+                    </button>
+                    @* LOGIC: Link đăng xuất *@
+                    <a href="~/Account/Logout" class="list-group-item-neo text-danger">
+                        <i class="bi bi-door-open-fill me-2"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        @* --- CỘT PHẢI: CHI TIẾT --- *@
+        <div class="col-lg-8 mb-4">
+            <div class="custom-card p-4 h-100">
+                <h5 class="mb-4 fw-bold text-uppercase border-bottom border-dark border-3 pb-2">Thông tin chi tiết</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="info-label-neo">Tên giao dịch</p>
+                        <div class="info-value-neo">@Model.ContactName</div>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="info-label-neo">Số điện thoại</p>
+                        <div class="info-value-neo">@(string.IsNullOrEmpty(Model.Phone) ? "Chưa cập nhật" : Model.Phone)</div>
+                    </div>
+                    <div class="col-md-12">
+                        <p class="info-label-neo">Email liên hệ</p>
+                        <div class="info-value-neo">@Model.Email</div>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="info-label-neo">Tỉnh/Thành</p>
+                        <div class="info-value-neo">@Model.Province</div>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="info-label-neo">Địa chỉ chi tiết</p>
+                        <div class="info-value-neo">@Model.Address</div>
                     </div>
                 </div>
 
+                <div class="mt-auto p-3" style="border: 3px dashed var(--neo-border); background: var(--neo-green);">
+                    <p class="mb-0 fw-bold">
+                        <i class="bi bi-shield-check me-2"></i>
+                        Trạng thái: Tài khoản @(Model.IsLocked ? "đang bị khóa" : "đang hoạt động")
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+@* --- MODAL ĐỔI MẬT KHẨU --- *@
+<div class="modal fade" id="modalChangePassword" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: 4px solid var(--neo-border); border-radius: 0; box-shadow: 10px 10px 0px #000;">
+            <div class="modal-header" style="background: var(--neo-yellow); border-bottom: 4px solid var(--neo-border); border-radius: 0;">
+                <h5 class="modal-title fw-bold text-uppercase">Bảo mật tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background: var(--neo-bg);">
+                @* LOGIC: Trỏ về Action ChangePassword trong AccountController *@
+                <form action="~/Account/ChangePassword" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="info-label-neo">Mật khẩu hiện tại</label>
+                        <input type="password" name="oldPassword" class="w-100" required style="border: 3px solid #000; padding: 10px; box-shadow: 4px 4px 0px #000;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="info-label-neo">Mật khẩu mới</label>
+                        <input type="password" name="newPassword" class="w-100" required style="border: 3px solid #000; padding: 10px; box-shadow: 4px 4px 0px #000;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="info-label-neo">Xác nhận mật khẩu mới</label>
+                        <input type="password" name="confirmPassword" class="w-100" required style="border: 3px solid #000; padding: 10px; box-shadow: 4px 4px 0px #000;">
+                    </div>
+
+                    <div class="text-end mt-4">
+                        <button type="button" class="btn fw-bold text-uppercase me-3" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn-neo-edit" style="background: var(--neo-green);">Cập nhật</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* LOGIC: Hiển thị thông báo phản hồi từ Server *@
+@if (TempData["Message"] != null)
+{
+    <div id="statusToast" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1060">
+        <div class="p-3 fw-bold text-uppercase" style="background: var(--neo-yellow); border: 4px solid #000; box-shadow: 5px 5px 0px #000;">
+            @TempData["Message"]
+        </div>
+    </div>
+    <script>
+        setTimeout(function () {
+            document.getElementById('statusToast').style.display = 'none';
+        }, 5000);
+    </script>
+}

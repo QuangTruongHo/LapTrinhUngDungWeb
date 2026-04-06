@@ -1,35 +1,147 @@
 ﻿@using SV22T1020488.Models.Sales
-@model IEnumerable<Order>
+@model IEnumerable<OrderViewInfo>
+@{
+    ViewBag.Title = "Đơn hàng của tôi";
+}
 
-<table class="table table-hover">
-    <thead>
-        <tr>
-            <th>Mã đơn</th>
-            <th>Ngày đặt</th>
-            <th>Trạng thái</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+<style>
+    /* Biến màu sắc Neubrutalism */
+    :root {
+        --neo-yellow: #FFDE03;
+        --neo-green: #32CD32;
+        --neo-pink: #FF69B4;
+        --neo-blue: #33CCFF;
+        --neo-danger: #ef4444; /* Màu đỏ cho trạng thái hủy */
+        --neo-white: #ffffff;
+    }
+
+    .fw-black {
+        font-weight: 900;
+    }
+
+    .custom-card {
+        background: var(--neo-white);
+        border: 4px solid #000;
+        box-shadow: 10px 10px 0px #000;
+    }
+
+    /* Hiệu ứng khung bọc cho nút Chi tiết */
+    .btn-detail-wrapper {
+        display: inline-block;
+        background: #000;
+        padding: 0;
+        transition: all 0.2s;
+    }
+
+    .btn-neo-edit {
+        display: block;
+        background: var(--neo-white);
+        color: #000;
+        border: 2px solid #000;
+        font-weight: 900;
+        text-transform: uppercase;
+        text-decoration: none;
+        padding: 4px 15px;
+        position: relative;
+        top: -4px;
+        left: -4px;
+        transition: all 0.1s;
+    }
+
+    .btn-detail-wrapper:hover .btn-neo-edit {
+        top: 0;
+        left: 0;
+        background: var(--neo-yellow);
+        color: #000;
+    }
+
+    /* Định dạng bảng */
+    .table-responsive {
+        border: 3px solid #000;
+    }
+
+    .table thead {
+        border-bottom: 3px solid #000;
+    }
+
+    .cancelled-row {
+        background-color: #fff1f2 !important; /* Nền hồng rất nhạt cho dòng bị hủy */
+    }
+
+    .text-cancelled {
+        text-decoration: line-through;
+        opacity: 0.6;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="custom-card p-4">
+        <h2 class="fw-bold text-uppercase mb-4">
+            <i class="bi bi-box-seam me-2"></i>Lịch sử mua hàng
+        </h2>
+
+        @if (Model == null || !Model.Any())
         {
-            <tr>
-                <td>@item.OrderID</td>
-                <td>@item.OrderTime.ToString("dd/MM/yyyy")</td>
-                <td>
-                    @* Dùng logic số nguyên bạn đã làm *@
-                    @if ((int)item.Status == 1)
-                    {
-                        <span>Chờ duyệt</span>
-                    }
-                    else if ((int)item.Status == 4)
-                    {
-
-                        <span class="text-success">Thành công</span>
-                    }
-                </td>
-                <td><a href="~/Order/Details/@item.OrderID">Xem chi tiết</a></td>
-            </tr>
+            <div class="alert alert-info border-3 border-dark rounded-0">
+                Bạn chưa có đơn hàng nào. <a href="~/Home" class="fw-bold text-dark">Mua sắm ngay!</a>
+            </div>
         }
-    </tbody>
-</table>
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover m-0 border-0">
+                    <thead style="background: var(--neo-yellow);">
+                        <tr class="text-uppercase small fw-black">
+                            <th class="p-3 border-dark">Mã đơn</th>
+                            <th class="p-3 border-dark">Ngày đặt</th>
+                            <th class="p-3 border-dark">Địa chỉ giao hàng</th>
+                            <th class="p-3 border-dark">Trạng thái</th>
+                            <th class="p-3 text-center border-dark">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody style="background: #fff;">
+                        @foreach (var item in Model)
+                        {
+                            // Logic kiểm tra trạng thái hủy/từ chối
+                            bool isCancelled = item.Status == OrderStatusEnum.Cancelled || item.Status == OrderStatusEnum.Rejected;
+
+                            <tr class="@(isCancelled ? "cancelled-row" : "")" style="vertical-align: middle; border-bottom: 2px solid #000;">
+                                <td class="p-3 fw-bold border-dark @(isCancelled ? "text-cancelled" : "")">#@item.OrderID</td>
+                                <td class="p-3 border-dark @(isCancelled ? "text-cancelled" : "")">@item.OrderTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="p-3 small border-dark @(isCancelled ? "text-cancelled" : "")">
+                                    <strong>@item.DeliveryProvince</strong><br />
+                                    @item.DeliveryAddress
+                                </td>
+                                <td class="p-3 border-dark">
+                                    @{
+                                        // Thiết lập màu sắc Badge đồng bộ với trang chi tiết
+                                        string bgStatus = item.Status switch
+                                        {
+                                            OrderStatusEnum.Completed => "var(--neo-green)",
+                                            OrderStatusEnum.Cancelled or OrderStatusEnum.Rejected => "var(--neo-danger)",
+                                            OrderStatusEnum.Shipping => "var(--neo-blue)",
+                                            _ => "var(--neo-yellow)"
+                                        };
+
+                                        string textStatusColor = (isCancelled) ? "#fff" : "#000";
+                                    }
+                                    <span class="badge border border-2 border-dark px-3 py-2"
+                                          style="background: @bgStatus; color: @textStatusColor; border-radius: 0; font-weight: 800; min-width: 100px;">
+                                        @item.Status.GetDescription()
+                                    </span>
+                                </td>
+                                <td class="p-3 text-center border-dark">
+                                    <div class="btn-detail-wrapper">
+                                        <a href="~/Order/Details/@item.OrderID" class="btn-neo-edit">
+                                            Chi tiết
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

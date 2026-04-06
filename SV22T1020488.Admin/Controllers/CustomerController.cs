@@ -1,28 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using SV22T1020488.Admin;
 using SV22T1020488.BusinessLayers;
 using SV22T1020488.Models.Common;
 using SV22T1020488.Models.Partner;
-using System.Reflection.Metadata.Ecma335;
+using System;
 using System.Threading.Tasks;
 
 namespace SV22T1020488.Admin.Controllers
 {
-
-    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Sales}")]
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.DataManager}")]
     public class CustomerController : Controller
     {
-        private const int PAGESIZE = 10;
-        /// <summary>
-        /// Tên của biến dùng để lưu điều kiện tìm kiếm khách hàng trong session
-        /// </summary>
         private const string CUSTOMER_SEARCH = "CustomerSearchInput";
-        /// <summary>
-        /// Nhập đầu vào tìm kiếm
-        /// </summary>
-        /// <returns></returns>
+
         public IActionResult Index()
         {
             var input = ApplicationContext.GetSessionData<PaginationSearchInput>(CUSTOMER_SEARCH);
@@ -36,10 +26,6 @@ namespace SV22T1020488.Admin.Controllers
             return View(input);
         }
 
-        /// <summary>
-        /// Tìm kiếm và trả về kết quả
-        /// </summary>
-        /// <returns></returns>
         public async Task<IActionResult> Search(PaginationSearchInput input)
         {
             var result = await PartnerDataService.ListCustomersAsync(input);
@@ -47,112 +33,152 @@ namespace SV22T1020488.Admin.Controllers
             return View(result);
         }
 
-        /// <summary>
-        /// Tạo mới 1 khách hàng
-        /// </summary>
-        /// <returns></returns>
         public IActionResult Create()
         {
-
             ViewBag.Title = "Thêm mới khách hàng";
             var model = new Customer()
             {
-                CustomerID = 0
+                CustomerID = 0,
+                IsLocked = false
             };
             return View("Edit", model);
         }
 
-        /// <summary>
-        /// Cập nhật 1 khách hàng
-        /// </summary>
-        /// <param name="id">Mã khách hàng cần cập nhật</param>
-        /// <returns></returns>
         public async Task<IActionResult> Edit(int id)
         {
             ViewBag.Title = "Cập nhật khách hàng";
             var model = await PartnerDataService.GetCustomerAsync(id);
-            if (model == null)
-                return RedirectToAction("Index");
-            return View();
+            if (model == null) return RedirectToAction("Index");
+            return View(model);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveData(Customer data)
         {
             try
             {
-                ViewBag.Title = data.CustomerID == 0 ? "Bổ sung khách hàng" : "Cập nhật thông tin khách hàng";
-                //TODO: Kiểm tra dữ liệu có hợp lệ không
-
-                //Cách làm: Sử dụng ModelState dể lưu các tình huống lỗi và thông báo lỗi cho người dùng(trên View)
-                //Giả định: Chỉ yêu cầu nhập tên, emai, tỉnh/thành
+                // 1. Kiểm tra dữ liệu đầu vào (Validation)
                 if (string.IsNullOrWhiteSpace(data.CustomerName))
-                    ModelState.AddModelError("CustomerName", "Vui lòng nhập tên khách hàng");
+                    ModelState.AddModelError(nameof(data.CustomerName), "Tên khách hàng không được để trống");
 
                 if (string.IsNullOrWhiteSpace(data.Email))
                     ModelState.AddModelError(nameof(data.Email), "Email không được bỏ trống");
-                else if (await PartnerDataService.ValidateCustomerEmailAsync(data.Email, data.CustomerID))
-                    ModelState.AddModelError(nameof(data.Email), "Email bị trùng");
+                else
+                {
+                    bool isValid = await PartnerDataService.ValidateCustomerEmailAsync(data.Email, data.CustomerID);
+                    if (!isValid)
+                        ModelState.AddModelError(nameof(data.Email), "Email này đã được sử dụng");
+                }
 
                 if (string.IsNullOrWhiteSpace(data.Province))
                     ModelState.AddModelError(nameof(data.Province), "Vui lòng chọn tỉnh thành");
 
                 if (!ModelState.IsValid)
+                {
+                    ViewBag.Title = data.CustomerID == 0 ? "Thêm mới khách hàng" : "Cập nhật khách hàng";
                     return View("Edit", data);
+                }
 
-                //(Tùy chọn) Hiệu chỉnh dữ liệu theo qui định cuả hệ thống
+                // 2. Làm sạch dữ liệu
                 if (string.IsNullOrWhiteSpace(data.ContactName)) data.ContactName = data.CustomerName;
-                if (string.IsNullOrEmpty(data.Phone)) data.Phone = "";
-                if (string.IsNullOrEmpty(data.Address)) data.Address = "";
+                data.Phone = data.Phone ?? "";
+                data.Address = data.Address ?? "";
 
-
-                //Lưu dữ liệu vào CSDL
+                // 3. Xử lý lưu dữ liệu
                 if (data.CustomerID == 0)
+                {
+                    // KHI THÊM MỚI: Sử dụng CryptHelper để mã hóa mật khẩu mặc định "123456"
+                    // Đảm bảo namespace chứa CryptHelper đã được reference đúng
+                    data.Password = CryptHelper.HashMD5("123456");
                     await PartnerDataService.AddCustomerAsync(data);
+                }
                 else
+                {
+                    // KHI CẬP NHẬT THÔNG TIN: 
+                    // Lấy lại mật khẩu hiện tại từ database để tránh việc bị null hoặc mất mật khẩu cũ
+                    var existingCustomer = await PartnerDataService.GetCustomerAsync(data.CustomerID);
+                    if (existingCustomer != null)
+                    {
+                        data.Password = existingCustomer.Password;
+                    }
                     await PartnerDataService.UpdateCustomerAsync(data);
+                }
+
                 return RedirectToAction("Index");
-                
             }
             catch (Exception ex)
             {
-                //Ghi log lỗi dựa vào thông tin Exception (ex.Message, ex.StackTrace)
-                ModelState.AddModelError("Error", "Hệ thống đang bận, vui lòng thử lại sau ít phút");
+                // Log lỗi nếu cần thiết: ex.Message
+                ModelState.AddModelError("Error", "Có lỗi xảy ra trong quá trình lưu dữ liệu. Vui lòng thử lại.");
                 return View("Edit", data);
             }
-            
         }
-        /// <summary>
-        /// Xóa 1 khách hàng
-        /// </summary>
-        /// <param name="id">Mã khách hàng cần xóa</param>
-        /// <returns></returns>
+
         public async Task<IActionResult> Delete(int id)
         {
-            //Nếu method bằng POST thì xóa
-            if(Request.Method == "POST")
+            if (Request.Method == "POST")
             {
                 await PartnerDataService.DeleteCustomerAsync(id);
                 return RedirectToAction("Index");
             }
-            //GET Hiển thị thông tin khách hàng cần xóa
             var model = await PartnerDataService.GetCustomerAsync(id);
-            if (model == null)
-                return RedirectToAction("Index");
-
+            if (model == null) return RedirectToAction("Index");
             ViewBag.CanDelete = !await PartnerDataService.IsUsedCustomerAsync(id);
-
             return View(model);
         }
 
         /// <summary>
-        /// Đổi mật khẩu khách hàng
+        /// Giao diện đổi mật khẩu (GET)
         /// </summary>
-        /// <param name="id">Mã khách hàng cần đổi mật khẩu </param>
-        /// <returns></returns>
-        public IActionResult ChangePassword(int id)
+        [HttpGet]
+        public async Task<IActionResult> ChangePassword(int id)
         {
-            return View();
+            var model = await PartnerDataService.GetCustomerAsync(id);
+            if (model == null) return RedirectToAction("Index");
+
+            ViewBag.Title = "Đổi mật khẩu khách hàng";
+            return View(model);
+        }
+
+        /// <summary>
+        /// Thực hiện lưu mật khẩu (POST)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(int id, string newPassword, string confirmPassword)
+        {
+            var customer = await PartnerDataService.GetCustomerAsync(id);
+            if (customer == null) return RedirectToAction("Index");
+
+            // --- KIỂM TRA VALIDATION ---
+            if (string.IsNullOrWhiteSpace(newPassword))
+                ModelState.AddModelError("newPassword", "Vui lòng nhập mật khẩu mới.");
+
+            if (newPassword != confirmPassword)
+                ModelState.AddModelError("confirmPassword", "Xác nhận mật khẩu không khớp.");
+
+            if (!ModelState.IsValid)
+            {
+                return View(customer);
+            }
+
+            // --- THỰC HIỆN ĐỔI MẬT KHẨU CÓ MÃ HÓA ---
+            // QUAN TRỌNG: Mã hóa mật khẩu mới sang MD5 trước khi truyền vào Service
+            string encryptedPassword = CryptHelper.HashMD5(newPassword);
+
+            bool isUpdated = await PartnerDataService.ChangeCustomerPasswordAsync(id, encryptedPassword);
+
+            if (isUpdated)
+            {
+                TempData["PasswordSuccess"] = $"Đổi mật khẩu cho khách hàng {customer.CustomerName} thành công!";
+                return RedirectToAction("ChangePassword", new { id = id });
+            }
+            else
+            {
+                ModelState.AddModelError("", "Lỗi hệ thống: Không thể cập nhật dữ liệu mật khẩu mới.");
+                return View(customer);
+            }
         }
     }
 }

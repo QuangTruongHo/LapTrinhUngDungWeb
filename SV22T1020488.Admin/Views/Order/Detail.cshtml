@@ -8,42 +8,44 @@
 }
 
 @section PageToolBar {
-    <div class="btn-group">
-        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-gear me-1"></i> Xử lý đơn hàng
-        </button>
-        <ul class="dropdown-menu">
-            @* 1. Duyệt đơn: Chỉ khi đơn hàng mới (New = 1) *@
-            @if (order.Status == OrderStatusEnum.New)
-            {
-                <li><a class="dropdown-item open-modal" href="~/Order/Accept/@order.OrderID">Duyệt đơn hàng</a></li>
-                <li><a class="dropdown-item text-danger open-modal" href="~/Order/Reject/@order.OrderID">Từ chối đơn hàng</a></li>
-            }
+    @* 1. KHỐI NÚT XỬ LÝ: Chỉ hiện khi đơn hàng CHƯA hoàn tất và CHƯA hủy *@
+    @if (order.Status != OrderStatusEnum.Completed && order.Status != OrderStatusEnum.Cancelled)
+    {
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-gear me-1"></i> Xử lý đơn hàng
+            </button>
+            <ul class="dropdown-menu">
+                @* Duyệt đơn & Từ chối: Chỉ khi đơn hàng mới (New) *@
+                @if (order.Status == OrderStatusEnum.New)
+                {
+                    <li><a class="dropdown-item open-modal" href="~/Order/Accept/@order.OrderID">Duyệt đơn hàng</a></li>
+                    <li><a class="dropdown-item text-danger open-modal" href="~/Order/Reject/@order.OrderID">Từ chối đơn hàng</a></li>
+                }
 
-            @* 2. Giao hàng: Chỉ khi đã duyệt (Accepted = 2) *@
-            @if (order.Status == OrderStatusEnum.Accepted)
-            {
-                <li><a class="dropdown-item open-modal" href="~/Order/Shipping/@order.OrderID">Chuyển giao hàng</a></li>
-            }
+                @* Giao hàng: Chỉ khi đã duyệt (Accepted) *@
+                @if (order.Status == OrderStatusEnum.Accepted)
+                {
+                    <li><a class="dropdown-item open-modal" href="~/Order/Shipping/@order.OrderID">Chuyển giao hàng</a></li>
+                }
 
-            @* 3. Hoàn tất: Chỉ khi đang giao (Shipping = 3) *@
-            @if (order.Status == OrderStatusEnum.Shipping)
-            {
-                <li><a class="dropdown-item open-modal" href="~/Order/Finish/@order.OrderID">Hoàn tất đơn hàng</a></li>
-            }
+                @* Hoàn tất: Chỉ khi đang giao (Shipping) *@
+                @if (order.Status == OrderStatusEnum.Shipping)
+                {
+                    <li><a class="dropdown-item open-modal" href="~/Order/Finish/@order.OrderID">Hoàn tất đơn hàng</a></li>
+                }
 
-            @* 4. HỦY ĐƠN: Không cho hủy nếu đã Hoàn tất (Completed), đã Hủy (Cancelled) hoặc Từ chối (Rejected) *@
-            @if (order.Status != OrderStatusEnum.Completed &&
-                    order.Status != OrderStatusEnum.Cancelled &&
-                    order.Status != OrderStatusEnum.Rejected)
-            {
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger open-modal" href="~/Order/Cancel/@order.OrderID">Hủy đơn hàng</a></li>
-            }
-        </ul>
-    </div>
+                @* Hủy đơn: Chỉ khi mới hoặc đã duyệt *@
+                @if (order.Status == OrderStatusEnum.New || order.Status == OrderStatusEnum.Accepted)
+                {
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger open-modal" href="~/Order/Cancel/@order.OrderID">Hủy đơn hàng</a></li>
+                }
+            </ul>
+        </div>
+    }
 
-    @* 6. XÓA ĐƠN: Chỉ cho phép xóa nếu đơn mới, đã hủy hoặc bị từ chối *@
+    @* 2. NÚT XÓA: Hiện khi đơn hàng Mới, Đã hủy hoặc Bị từ chối (Không hiện khi đã Hoàn tất) *@
     @if (order.Status == OrderStatusEnum.New ||
              order.Status == OrderStatusEnum.Cancelled ||
              order.Status == OrderStatusEnum.Rejected)
@@ -53,11 +55,13 @@
         </a>
     }
 
+    @* 3. NÚT QUAY LẠI: Luôn luôn hiện *@
     <a href="~/Order" class="btn btn-secondary ms-1">
         <i class="bi bi-arrow-left"></i> Quay lại
     </a>
 }
 
+@* Phần hiển thị thông tin trạng thái trực quan *@
 <div class="alert alert-info mb-3">
     <i class="bi bi-info-circle me-2"></i>
     <strong>Trạng thái đơn hàng:</strong>
@@ -68,27 +72,21 @@
                 <text>Đơn hàng mới (Chờ duyệt)</text>
                 break;
             case OrderStatusEnum.Accepted:
-
                 <text>Đã xác nhận (Chờ giao hàng)</text>
                 break;
             case OrderStatusEnum.Shipping:
-
                 <text>Đang giao hàng</text>
                 break;
             case OrderStatusEnum.Completed:
-
                 <text>Thành công (Đã kết thúc)</text>
                 break;
             case OrderStatusEnum.Cancelled:
-
                 <text>Đã hủy</text>
                 break;
             case OrderStatusEnum.Rejected:
-
                 <text>Bị từ chối</text>
                 break;
             default:
-
                 <text>Không xác định</text>
                 break;
         }

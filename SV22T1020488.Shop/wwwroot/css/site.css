@@ -1,96 +1,94 @@
-﻿/* Cấu hình cơ bản */
-html {
-    font-size: 14px;
-    position: relative;
-    min-height: 100%;
-}
-
-@media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
-}
-
-body {
-    /* Đẩy margin bottom để không bị che bởi footer cố định (nếu có) */
-    margin-bottom: 60px;
-    background-color: #f8f9fa;
-}
-
-/* Tùy chỉnh hiệu ứng Focus cho các element của Bootstrap */
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-/* --- HIỆU ỨNG HỘP QUÀ BAY (FLY TO CART) --- */
-
-/* 1. Lớp định dạng hộp quà khi đang bay */
-.fly-gift-box {
-    position: fixed;
-    z-index: 9999;
-    width: 40px;
-    height: 40px;
-    background-color: #ffc107; /* Màu vàng Gold */
-    color: white;
+﻿body {
+    background-color: #e3f2fd; /* Màu xanh da trời rất nhạt (Alice Blue) phía ngoài */
+    font-family: 'Segoe UI', Arial, sans-serif;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    font-size: 20px;
-    pointer-events: none; /* Không cho phép click vào khi đang bay */
-    /* Hiệu ứng mượt mà cho tọa độ và kích thước */
-    transition: all 0.8s cubic-bezier(0.42, 0, 0.58, 1);
+    min-height: 100vh;
+    margin: 0;
 }
 
-    /* Thêm icon hộp quà bằng Emoji hoặc Icon */
-    .fly-gift-box::after {
-        content: '🎁';
-        font-size: 24px;
-    }
-
-/* 2. Hiệu ứng rung giỏ hàng khi nhận được quà */
-@keyframes cart-bounce {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.4);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-.cart-shake {
-    animation: cart-bounce 0.5s ease-in-out;
-    color: #ffca2c !important; /* Đổi màu icon giỏ hàng sang vàng sáng khi nhận hàng */
-}
-
-/* --- TÙY CHỈNH GIAO DIỆN CỬA HÀNG --- */
-.card-product {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: none;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-    .card-product:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-    }
-
-.product-img-container {
+.login-card {
     background-color: #fff;
+    border-radius: 25px;
+    box-shadow: 0 15px 35px rgba(13, 110, 253, 0.15); /* Shadow màu xanh nhẹ */
     overflow: hidden;
+    max-width: 850px;
+    width: 95%;
+    display: flex;
+    flex-wrap: wrap;
 }
 
-.product-img {
-    transition: transform 0.5s ease;
+.login-side-img {
+    background-color: #f1f8ff; /* Nền xanh cực nhẹ cho phần chứa ảnh */
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    min-width: 300px;
 }
 
-.card-product:hover .product-img {
-    transform: scale(1.05);
+    .login-side-img img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 20px;
+    }
+
+.login-side-form {
+    flex: 1;
+    padding: 50px 40px;
+    min-width: 300px;
 }
+
+    .login-side-form h2 {
+        color: #0d6efd; /* Màu xanh dương chủ đạo (Bootstrap Primary) */
+        font-weight: 700;
+        margin-bottom: 35px;
+        text-align: center;
+    }
+
+.form-label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    border-radius: 12px;
+    padding: 12px 15px;
+    border: 1.5px solid #eee;
+    transition: all 0.3s;
+}
+
+    .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.25 margin rgba(13, 110, 253, 0.25);
+    }
+
+.btn-submit {
+    background-color: #0d6efd; /* Nút màu xanh dương */
+    border: none;
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    width: 100%;
+    margin-top: 25px;
+    transition: 0.3s;
+}
+
+    .btn-submit:hover {
+        background-color: #0b5ed7; /* Màu xanh đậm hơn khi hover */
+        transform: translateY(-2px);
+    }
+
+.text-blue {
+    color: #0d6efd;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+    .text-blue:hover {
+        color: #0b5ed7;
+    }

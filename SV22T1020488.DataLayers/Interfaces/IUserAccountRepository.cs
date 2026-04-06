@@ -17,6 +17,10 @@ namespace SV22T1020488.DataLayers.Interfaces
         /// ngược lại trả về null
         /// </returns>
         Task<UserAccount?> AuthorizeAsync(string userName, string password);
+        Task<UserAccount?> AuthorizeCustomerAsync(string userName, string password);
+        Task<bool> ChangeCustomerPasswordAsync(string userName, string password);
+        Task<bool> RegisterCustomerAsync(string customerName, string email, string password);
+        Task<bool> CheckCustomerEmailExistsAsync(string email);
         /// <summary>
         /// Đổi mật khẩu của tài khoản
         /// </summary>

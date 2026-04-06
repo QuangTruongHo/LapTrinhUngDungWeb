@@ -30,8 +30,9 @@
                     @* Các trường ẩn bắt buộc *@
                     <input type="hidden" asp-for="PhotoID" />
                     <input type="hidden" asp-for="ProductID" />
-                    @* Trường ẩn Photo chứa chuỗi Base64 *@
-                    <input type="hidden" asp-for="Photo" />
+
+                    @* Trường ẩn Photo chứa tên file ảnh hiện tại *@
+                    <input type="hidden" asp-for="Photo" id="PhotoData" />
 
                     @* Hiển thị lỗi tổng quát nếu có *@
                     @if (!ViewData.ModelState.IsValid)
@@ -47,10 +48,11 @@
                         <div class="col-sm-9">
                             <input type="file"
                                    name="uploadPhoto"
+                                   id="filePicker"
                                    class="form-control"
                                    accept="image/*"
-                                   onchange="document.getElementById('imgPreview').src = window.URL.createObjectURL(this.files[0])" />
-                            <div class="form-text italic small mt-1 text-muted">Chọn ảnh để hệ thống tự động chuyển sang chuỗi dữ liệu.</div>
+                                   onchange="previewImage(this)" />
+                            <div class="form-text italic small mt-1 text-muted">Hỗ trợ các định dạng: .jpg, .png, .gif, .webp</div>
                         </div>
                     </div>
 
@@ -58,15 +60,15 @@
                         <label class="col-sm-3 fw-semibold">Xem trước</label>
                         <div class="col-sm-9">
                             @{
-                                // Nếu Photo đã là chuỗi Base64 thì dùng trực tiếp, nếu không dùng ảnh nophoto mặc định
+                                // Ưu tiên hiển thị ảnh từ thư mục products, nếu trống dùng nophoto
                                 string photoSrc = string.IsNullOrEmpty(Model.Photo)
                                 ? Url.Content("~/images/products/nophoto.png")
-                                : Model.Photo;
+                                : Url.Content($"~/images/products/{Model.Photo}");
                             }
                             <img id="imgPreview"
                                  src="@photoSrc"
                                  class="img-thumbnail shadow-sm"
-                                 style="max-height:300px; min-width:150px; object-fit:contain;"
+                                 style="max-height:300px; min-width:150px; object-fit:contain; border: 2px dashed #dee2e6;"
                                  onerror="this.src='@Url.Content("~/images/products/nophoto.png")'" />
                         </div>
                     </div>
@@ -113,12 +115,27 @@
             @if (Model.PhotoID > 0)
             {
                 <div class="card-footer bg-light text-center py-2">
-                    <small class="text-muted">Đang sử dụng dữ liệu chuỗi cho ảnh mã số: <strong>#@Model.PhotoID</strong></small>
+                    <small class="text-muted">Mã số ảnh: <strong>#@Model.PhotoID</strong> | Tên tệp: <strong>@Model.Photo</strong></small>
                 </div>
             }
         </div>
     </div>
 </div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('imgPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+
+            // Xóa giá trị Photo cũ để Controller nhận biết có file mới
+            document.getElementById('PhotoData').value = "";
+        }
+    }
+</script>
 
 <style>
     .italic {

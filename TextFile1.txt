@@ -75,3 +75,331 @@
    Trong đó: Danh sách quyền là tên của các Role, viết phân cách nhau bới dấu phẩy
    Trong Action hoặc View, muốn lấy giấy chưnngs nhận (ClaimsPrincipal), thông tin thuộc tính user
       WebUserData -> CreatePrincipal -> ClaimsPrincipal
+
+// index.home
+@using SV22T1020488.Models.Common
+@using SV22T1020488.Models.Catalog
+@model PagedResult<Product>
+
+@{
+    ViewBag.Title = "Tạp hóa của Trường";
+    string defaultImg = "https://cdn-icons-png.flaticon.com/512/679/679821.png";
+    var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
+
+    // LẤY TIÊU CHÍ LỌC TỪ VIEWBAG (Đã được nạp từ Controller)
+    // Điều này giúp tránh lỗi Model PagedResult không có thuộc tính lọc
+    var searchInput = ViewBag.SearchInput as ProductSearchInput ?? new ProductSearchInput();
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --neo-border: #1a1a1a;
+        --neo-shadow: #000000;
+        --neo-bg: #f4eee0;
+        --neo-yellow: #f4d03f;
+        --neo-pink: #f8bbd0;
+        --neo-green: #a3d9c5;
+        --neo-blue: #a6c1ee;
+    }
+
+    body {
+        background-color: #fbc2eb;
+        background-image: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+        font-family: 'Space Mono', monospace;
+        padding: 40px 10px;
+        color: var(--neo-border);
+        scroll-behavior: smooth;
+    }
+
+    .main-wrapper {
+        background: var(--neo-bg);
+        border: 8px solid var(--neo-border);
+        padding: 50px;
+        box-shadow: 25px 25px 0px var(--neo-shadow);
+        max-width: 1600px;
+        width: 95%;
+        margin: 20px auto;
+    }
+
+    .brand-logo {
+        font-weight: 900;
+        font-size: 2rem;
+        letter-spacing: -1px;
+        color: var(--neo-border);
+        text-decoration: none;
+    }
+
+    .search-advanced-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        border: 6px solid var(--neo-border);
+        box-shadow: 10px 10px 0px var(--neo-shadow);
+        margin-bottom: 40px;
+        background: #fff;
+    }
+
+    .search-input-neo {
+        border: none;
+        border-right: 6px solid var(--neo-border);
+        padding: 15px 20px;
+        font-family: inherit;
+        font-weight: 700;
+        outline: none;
+        font-size: 0.95rem;
+        background: transparent;
+    }
+
+    .select-category {
+        background-color: var(--neo-blue);
+        min-width: 200px;
+        cursor: pointer;
+    }
+
+    .input-text-main {
+        flex-grow: 1;
+    }
+
+    .price-container {
+        display: flex;
+        align-items: center;
+        background: var(--neo-green);
+        border-right: 6px solid var(--neo-border);
+    }
+
+    .input-price {
+        width: 120px;
+        border-right: none;
+    }
+
+    .price-label {
+        font-weight: 900;
+        padding: 0 10px;
+    }
+
+    .btn-search-submit {
+        background: var(--neo-pink);
+        border: none;
+        padding: 0 30px;
+        font-weight: 900;
+        cursor: pointer;
+        transition: 0.2s;
+        text-transform: uppercase;
+        font-family: inherit;
+    }
+
+        .btn-search-submit:hover {
+            background: var(--neo-border);
+            color: white;
+        }
+
+    .nav-icon-btn {
+        background: white;
+        border: 4px solid var(--neo-border);
+        width: 55px;
+        height: 55px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: var(--neo-border);
+        box-shadow: 5px 5px 0px var(--neo-border);
+        text-decoration: none;
+        position: relative;
+    }
+
+    .cart-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #ff4444;
+        color: white;
+        border: 3px solid var(--neo-border);
+        font-size: 0.8rem;
+        font-weight: bold;
+        padding: 2px 8px;
+    }
+
+    .btn-auth {
+        border: 4px solid var(--neo-border);
+        padding: 10px 25px;
+        font-weight: 900;
+        text-decoration: none;
+        color: var(--neo-border);
+        box-shadow: 5px 5px 0px var(--neo-border);
+        text-transform: uppercase;
+    }
+
+    .btn-login {
+        background: var(--neo-yellow);
+    }
+
+    .btn-register {
+        background: var(--neo-pink);
+    }
+
+    .hero-banner {
+        background: var(--neo-yellow);
+        border: 6px solid var(--neo-border);
+        min-height: 420px;
+        display: flex;
+        align-items: center;
+        position: relative;
+        margin-bottom: 60px;
+        box-shadow: 15px 15px 0px var(--neo-shadow);
+    }
+
+    .hero-content {
+        padding-left: 60px;
+        z-index: 2;
+    }
+
+    .btn-neo-dark {
+        background: var(--neo-border);
+        color: #fff;
+        border: none;
+        padding: 15px 40px;
+        font-weight: bold;
+        box-shadow: 6px 6px 0px var(--neo-pink);
+        cursor: pointer;
+        display: inline-block;
+        text-decoration: none;
+    }
+
+    .hero-img-floating {
+        position: absolute;
+        right: 50px;
+        width: 30%;
+        filter: drop-shadow(10px 10px 0px var(--neo-border));
+    }
+</style>
+
+<div class="main-wrapper">
+    <nav class="custom-nav d-flex justify-content-between align-items-center mb-5 flex-wrap gap-4">
+        <a href="/" class="brand-logo">TẠP HÓA CỦA TRƯỜNG</a>
+
+        <div class="nav-actions d-flex gap-3 align-items-center">
+            <a href="~/Cart" class="nav-icon-btn" title="Giỏ hàng" id="cart-icon">
+                <i class="bi bi-cart-dash-fill"></i>
+                <span class="cart-badge">3</span>
+            </a>
+
+            <div class="auth-group d-flex gap-3">
+                <a href="~/Account/Login" class="btn-auth btn-login">ĐĂNG NHẬP</a>
+                <a href="~/Account/Register" class="btn-auth btn-register d-none d-lg-block">ĐĂNG KÝ</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero-banner">
+        <div class="hero-content">
+            <span class="badge bg-dark rounded-0 px-3 py-2 mb-3 text-uppercase">Siêu giảm giá -30%</span>
+            <h1 style="font-size: 4rem; font-weight: 900; line-height: 1.1;">MỌI THỨ<br>BẠN CẦN<span>.</span></h1>
+            <p class="fw-bold mt-3 fs-5">Hàng hóa chất lượng cao, giá cả bình dân ngay trong tầm tay.</p>
+            <button onclick="scrollToProducts()" class="btn-neo-dark mt-4">MUA SẮM NGAY</button>
+        </div>
+        <img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" class="hero-img-floating" onerror="this.src='@defaultImg'">
+    </div>
+
+    <div id="product-list-target" class="product-section">
+        <form id="formSearch" action="~/Product/Search" method="get" class="search-advanced-wrapper">
+            @* SỬA LỖI: Dùng searchInput thay vì Model *@
+            <select name="CategoryID" class="search-input-neo select-category" onchange="doSearch(1)">
+                <option value="0">TẤT CẢ LOẠI HÀNG</option>
+                @foreach (var c in categories)
+                {
+                    <option value="@c.CategoryID" selected="@(c.CategoryID == searchInput.CategoryID)">
+                        @c.CategoryName.ToUpper()
+                    </option>
+                }
+            </select>
+
+            <input type="text" name="SearchValue" class="search-input-neo input-text-main"
+                   placeholder="Nhập tên sản phẩm cần tìm..." value="@searchInput.SearchValue">
+
+            <div class="price-container">
+                <input type="number" name="MinPrice" class="search-input-neo input-price"
+                       placeholder="Giá từ" value="@(searchInput.MinPrice > 0 ? searchInput.MinPrice.ToString() : "")">
+                <span class="price-label">-</span>
+                <input type="number" name="MaxPrice" class="search-input-neo input-price"
+                       placeholder="Đến" value="@(searchInput.MaxPrice > 0 ? searchInput.MaxPrice.ToString() : "")">
+            </div>
+
+            <button type="submit" class="btn-search-submit">
+                <i class="bi bi-search me-2"></i>TÌM KIẾM
+            </button>
+        </form>
+
+        <div class="section-header d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="fw-bold text-uppercase m-0" style="font-size: 2.2rem;">Sản Phẩm</h2>
+                <div style="height: 10px; width: 100%; background: var(--neo-border); margin-top: 5px;"></div>
+            </div>
+        </div>
+
+        @* NƠI AJAX ĐỔ DỮ LIỆU VÀO *@
+        <div id="searchResult">
+            <div class="text-center p-5">
+                <div class="spinner-border text-dark" role="status"></div>
+                <p class="mt-2 fw-bold">Đang tải sản phẩm...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function scrollToProducts() {
+            const target = document.getElementById('product-list-target');
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function doSearch(page) {
+            var form = $("#formSearch");
+            var url = form.attr("action");
+            var postData = form.serializeArray();
+            postData.push({ name: "Page", value: page });
+
+            $.ajax({
+                url: url,
+                type: "GET",
+                data: postData,
+                error: function () {
+                    alert("Yêu cầu của bạn không thể hoàn thành.");
+                },
+                success: function (data) {
+                    $("#searchResult").html(data);
+                    fixImages();
+                }
+            });
+        }
+
+        function fixImages() {
+            const defaultSrc = "@defaultImg";
+            const images = document.querySelectorAll('.product-img-container img, .product-item img');
+            images.forEach(img => {
+                if (!img.getAttribute('data-error-handled')) {
+                    img.addEventListener('error', function() {
+                        this.src = defaultSrc;
+                        this.style.padding = "20px";
+                        this.style.backgroundColor = "#fff";
+                        this.style.objectFit = "contain";
+                    });
+                    img.setAttribute('data-error-handled', 'true');
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            // Tự động load trang đầu tiên sử dụng page từ model hoặc mặc định
+            doSearch(@Model.Page);
+
+            $("#formSearch").submit(function (e) {
+                e.preventDefault();
+                doSearch(1);
+            });
+        });
+    </script>
+}

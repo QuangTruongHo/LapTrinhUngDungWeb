@@ -1,0 +1,122 @@
+﻿@model SV22T1020488.Models.Partner.Customer
+@{
+    ViewBag.Title = "Chỉnh sửa hồ sơ";
+    // Lấy danh sách tỉnh thành từ ViewBag được truyền từ Controller
+    var provinceList = ViewBag.ProvinceList as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>;
+}
+
+<style>
+    /* Giữ nguyên root và body từ trang Profile */
+    :root {
+        --neo-border: #1a1a1a;
+        --neo-yellow: #f4d03f;
+        --neo-bg: #f4eee0;
+    }
+
+    .info-input-neo {
+        width: 100%;
+        font-size: 1.1rem;
+        font-weight: 700;
+        background: #fff;
+        border: 3px solid var(--neo-border);
+        padding: 12px;
+        margin-bottom: 20px;
+        box-shadow: 4px 4px 0px var(--neo-border);
+        outline: none;
+    }
+
+        .info-input-neo:focus {
+            background: var(--neo-yellow);
+        }
+
+    /* Style bổ sung cho thẻ select để khớp với giao diện của bạn */
+    select.info-input-neo {
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1em;
+        cursor: pointer;
+    }
+
+    .btn-save-neo {
+        background-color: #a3d9c5; /* Green */
+        color: var(--neo-border);
+        border: 4px solid var(--neo-border);
+        padding: 15px 30px;
+        font-weight: 900;
+        text-transform: uppercase;
+        box-shadow: 6px 6px 0px var(--neo-border);
+        cursor: pointer;
+    }
+
+        .btn-save-neo:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px var(--neo-border);
+        }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="custom-card p-5" style="background: white; border: 4px solid var(--neo-border); box-shadow: 12px 12px 0px #000;">
+                <h2 class="fw-bold text-uppercase mb-4">Chỉnh sửa thông tin</h2>
+
+                @* Form gửi dữ liệu lên Action Edit trong AccountController *@
+                <form action="~/Account/Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="CustomerID" value="@Model.CustomerID" />
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label class="fw-bold text-uppercase small">Tên khách hàng</label>
+                            <input type="text" name="CustomerName" class="info-input-neo" value="@Model.CustomerName" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold text-uppercase small">Tên liên hệ</label>
+                            <input type="text" name="ContactName" class="info-input-neo" value="@Model.ContactName" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold text-uppercase small">Số điện thoại</label>
+                            <input type="text" name="Phone" class="info-input-neo" value="@Model.Phone" />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="fw-bold text-uppercase small">Email</label>
+                            <input type="email" name="Email" class="info-input-neo" value="@Model.Email" />
+                        </div>
+
+                        @* SỬA LOGIC: Chuyển từ input text sang select *@
+                        <div class="col-md-6">
+                            <label class="fw-bold text-uppercase small">Tỉnh/Thành</label>
+                            <select name="Province" class="info-input-neo">
+                                @if (provinceList != null)
+                                {
+                                    foreach (var item in provinceList)
+                                    {
+                                        <option value="@item.Value" selected="@(item.Value == Model.Province)">
+                                            @item.Text
+                                        </option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option value="@Model.Province">@Model.Province</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="fw-bold text-uppercase small">Địa chỉ</label>
+                            <input type="text" name="Address" class="info-input-neo" value="@Model.Address" />
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-end">
+                        <a href="~/Account/Profile" class="text-decoration-none fw-bold text-dark me-4">HỦY BỎ</a>
+                        <button type="submit" class="btn-save-neo">LƯU THAY ĐỔI</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

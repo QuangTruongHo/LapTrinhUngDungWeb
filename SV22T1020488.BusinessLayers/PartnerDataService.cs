@@ -199,7 +199,19 @@ public static class PartnerDataService
     {
         return await customerDB.ValidateEmailAsync(email, customerID);
     }
+    // <summary>
+    /// Đổi mật khẩu cho khách hàng
+    /// </summary>
+    /// <param name="customerID">Mã khách hàng</param>
+    /// <param name="newPassword">Mật khẩu mới (nên được mã hóa trước khi truyền vào)</param>
+    /// <returns></returns>
+    public static async Task<bool> ChangeCustomerPasswordAsync(int customerID, string newPassword)
+    {
+        // Bạn có thể xử lý mã hóa mật khẩu tại đây nếu lớp Repository chỉ làm nhiệm vụ lưu trữ
+        // ví dụ: string hashedPassword = EncodePassword(newPassword);
 
+        return await customerDB.ChangePasswordAsync(customerID, newPassword);
+    }
     #endregion
 
     #region Shipper
