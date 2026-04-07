@@ -201,5 +201,29 @@ namespace SV22T1020488.DataLayers.SQLServer
         }
 
         #endregion
+
+        public async Task<int> CountOrdersAsync(int status = 0)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var sql = "SELECT COUNT(*) FROM Orders WHERE (@Status = 0 OR Status = @Status)";
+                return await connection.ExecuteScalarAsync<int>(sql, new { Status = status });
+            }
+        }
+
+        public async Task<decimal> GetRevenueAsync(DateTime fromDate, DateTime toDate)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                // Doanh thu chỉ tính trên các đơn hàng đã hoàn thành (giả sử Status = 4 là thành công)
+                var sql = @"SELECT SUM(od.Quantity * od.SalePrice) 
+                    FROM OrderDetails od 
+                    JOIN Orders o ON od.OrderID = o.OrderID 
+                    WHERE o.Status = 4 AND o.OrderTime BETWEEN @fromDate AND @toDate";
+                return await connection.ExecuteScalarAsync<decimal>(sql, new { fromDate, toDate });
+            }
+        }
     }
 }

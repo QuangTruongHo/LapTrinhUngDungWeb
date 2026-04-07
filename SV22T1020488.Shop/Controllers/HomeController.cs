@@ -19,34 +19,30 @@ namespace SV22T1020488.Shop.Controllers
         /// <summary>
         /// Trang chủ: Hiển thị giao diện tìm kiếm và danh sách sản phẩm mặc định
         /// </summary>
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(ProductSearchInput input)
         {
-            // 1. Khởi tạo đối tượng chứa tiêu chí tìm kiếm mặc định
-            // Đối tượng này sẽ được gửi sang View để binding vào các Form tìm kiếm
-            var input = new ProductSearchInput()
-            {
-                Page = 1,
-                PageSize = 12,
-                SearchValue = "",
-                CategoryID = 0,
-                MinPrice = 0,
-                MaxPrice = 0
-            };
+            // 1. Đảm bảo các thông số phân trang mặc định nếu URL không có
+            if (input.Page <= 0) input.Page = 1;
+            if (input.PageSize <= 0) input.PageSize = 12;
+
+            // Xử lý chuỗi tìm kiếm tránh bị null (giúp binding lên Form đẹp hơn)
+            input.SearchValue ??= "";
 
             // 2. Lấy danh sách Categories để đổ vào dropdown list (SelectBox)
-            // Sử dụng await để xử lý bất đồng bộ, tránh làm treo ứng dụng
+            // Sử dụng await để xử lý bất đồng bộ
             var categoryResult = await CatalogDataService.ListCategoriesAsync(new PaginationSearchInput
             {
                 Page = 1,
-                PageSize = 100, // Lấy tối đa 100 loại hàng
+                PageSize = 100, // Lấy tối đa 100 loại hàng để lọc
                 SearchValue = ""
             });
 
-            // Gán danh sách vào ViewBag để hiển thị ở Layout hoặc View
+            // Gán danh sách vào ViewBag để hiển thị ở các thẻ <select>
             ViewBag.Categories = categoryResult.DataItems;
 
-            // 3. TRUYỀN Model 'input' vào View
-            // Điều này cực kỳ quan trọng để View có @model ProductSearchInput không bị lỗi
+            // 3. TRUYỀN Model 'input' ngược lại vào View.
+            // Việc này giúp @Model.SearchValue hay @Model.CategoryID 
+            // trong file .cshtml hiển thị đúng những gì người dùng vừa nhập trên URL.
             return View(input);
         }
 

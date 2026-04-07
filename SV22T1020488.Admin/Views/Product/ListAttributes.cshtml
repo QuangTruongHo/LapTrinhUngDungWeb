@@ -15,8 +15,8 @@
                         </h6>
                     </div>
                     <div class="col text-end">
-                        @* CẬP NHẬT: href gọi đến Action CreateAttributes (có s) *@
-                        <a class="btn btn-sm btn-success" href="~/Product/CreateAttributes/@ViewBag.ProductID?method=add">
+                        @* CẬP NHẬT: Gọi trực tiếp đến hàm CreateAttribute *@
+                        <a class="btn btn-sm btn-success" href="~/Product/CreateAttribute/@ViewBag.ProductID">
                             <i class="bi bi-plus-circle me-1"></i>
                             Thêm thuộc tính
                         </a>
@@ -44,18 +44,17 @@
                                     <td class="align-middle">@item.AttributeValue</td>
                                     <td class="text-center align-middle">@item.DisplayOrder</td>
                                     <td class="text-center text-nowrap align-middle">
-                                        @* CẬP NHẬT: Nút Sửa gọi đến CreateAttributes (có s) *@
+                                        @* CẬP NHẬT: Nút Sửa gọi đến EditAttribute *@
                                         <a class="btn btn-sm btn-outline-primary me-1"
                                            title="Sửa thuộc tính"
-                                           href="~/Product/CreateAttributes/@item.ProductID?method=edit&attributeId=@item.AttributeID">
+                                           href="~/Product/EditAttribute/@item.ProductID?attributeId=@item.AttributeID">
                                             <i class="bi bi-pencil"></i>
                                         </a>
 
-                                        @* CẬP NHẬT: Nút Xóa gọi đến CreateAttributes (có s) *@
-                                        <a class="btn btn-sm btn-outline-danger"
-                                           title="Xóa thuộc tính"
-                                           href="~/Product/CreateAttributes/@item.ProductID?method=delete&attributeId=@item.AttributeID"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa thuộc tính này?')">
+                                        @* CẬP NHẬT: Nút Xóa gọi đến DeleteAttribute *@
+                                        <a class="btn btn-sm btn-outline-danger btn-delete-confirm"
+                                           href="~/Product/DeleteAttribute/@item.ProductID?attributeId=@item.AttributeID"
+                                           data-message="Xóa thuộc tính [@item.AttributeName]?">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </td>

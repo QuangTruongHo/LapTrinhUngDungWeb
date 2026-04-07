@@ -198,7 +198,8 @@
         <div style="height: 10px; width: 250px; background: var(--neo-border); margin-top: 5px;"></div>
     </div>
 
-    <form id="formSearch" action="~/Product/SearchResult" method="get">
+    @* Chặn submit mặc định của form để không bị load lại trang gây vỡ ảnh *@
+    <form id="formSearch" action="~/Product/SearchResult" method="get" onsubmit="return false;">
         <div class="search-advanced-wrapper">
             <select name="CategoryID" class="search-input-neo select-category" onchange="doSearch(1)">
                 <option value="0">TẤT CẢ LOẠI</option>
@@ -221,7 +222,7 @@
                        placeholder="Đến giá" value="@(Model.MaxPrice > 0 ? Model.MaxPrice.ToString() : "")">
             </div>
 
-            <button type="submit" class="btn-search-submit">
+            <button type="button" class="btn-search-submit" onclick="doSearch(1)">
                 <i class="bi bi-search fs-5 me-2"></i>TÌM KIẾM
             </button>
         </div>
@@ -235,19 +236,30 @@
 
 @section Scripts {
     <script>
-        // Hàm tìm kiếm và phân trang
+        // Khai báo hàm ra ngoài để các sự kiện onclick (onchange) có thể gọi được
         function doSearch(page) {
+            if (typeof $ === 'undefined') return; // Chống lỗi nếu jQuery chưa load
+
             var form = $("#formSearch");
             var searchUrl = "@Url.Content("~/Product/SearchResult")";
             var postData = form.serializeArray();
 
-            // Đảm bảo truyền đúng tham số Page cho Server
-            postData.push({ name: "Page", value: page });
+            // Kiểm tra và cập nhật Page trong postData
+            var pageFound = false;
+            for (var i = 0; i < postData.length; i++) {
+                if (postData[i].name === "Page") {
+                    postData[i].value = page;
+                    pageFound = true;
+                    break;
+                }
+            }
+            if (!pageFound) postData.push({ name: "Page", value: page });
 
-            // 1. CẬP NHẬT URL TRÊN THANH ĐỊA CHỈ
-            const currentUrl = new URL(window.location);
-            currentUrl.searchParams.set('page', page);
-            window.history.pushState({ page: page }, '', currentUrl);
+            // 1. CẬP NHẬT URL TRÊN THANH ĐỊA CHỈ (ĐÃ SỬA: Lấy toàn bộ tham số từ form)
+            // Sử dụng $.param để biến mảng postData thành chuỗi query string chuẩn
+            var queryString = $.param(postData);
+            var newUrl = "@Url.Content("~/Home")" + "?" + queryString;
+            window.history.pushState({ page: page }, '', newUrl);
 
             $.ajax({
                 url: searchUrl,
@@ -271,27 +283,21 @@
             });
         }
 
-        $(document).ready(function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            const pageInUrl = urlParams.get('page');
-
-            if (pageInUrl) {
-                doSearch(parseInt(pageInUrl));
-            } else {
-                doSearch(1);
-            }
-
-            window.onpopstate = function(event) {
-                const params = new URLSearchParams(window.location.search);
-                const page = params.get('page') || 1;
-                doSearchNoPush(parseInt(page));
-            };
-        });
-
         function doSearchNoPush(page) {
             var form = $("#formSearch");
             var postData = form.serializeArray();
-            postData.push({ name: "Page", value: page });
+
+            // Đảm bảo đồng bộ Page khi chạy NoPush
+            var pageFound = false;
+            for (var i = 0; i < postData.length; i++) {
+                if (postData[i].name === "Page") {
+                    postData[i].value = page;
+                    pageFound = true;
+                    break;
+                }
+            }
+            if (!pageFound) postData.push({ name: "Page", value: page });
+
             $.ajax({
                 url: "@Url.Content("~/Product/SearchResult")",
                 type: "GET",
@@ -301,5 +307,47 @@
                 }
             });
         }
+
+        // Toàn bộ logic khởi tạo phải nằm trong ready
+        $(document).ready(function () {
+            // Tự động tìm kiếm khi nhấn Enter trong các ô input
+            $("#formSearch input").keypress(function (e) {
+                if (e.which == 13) {
+                    doSearch(1);
+                    return false;
+                }
+            });
+
+            // Phân tích URL hiện tại để lấy lại các giá trị đã search (nếu có)
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Cập nhật giá trị ngược lại vào Form để khi F5 không bị mất chữ trong ô tìm kiếm
+            urlParams.forEach((value, key) => {
+                var $input = $(`[name='${key}']`);
+                if ($input.length > 0) {
+                    $input.val(value);
+                }
+            });
+
+            const pageInUrl = urlParams.get('Page') || urlParams.get('page');
+
+            if (pageInUrl) {
+                doSearchNoPush(parseInt(pageInUrl));
+            } else {
+                doSearch(1);
+            }
+
+            window.onpopstate = function(event) {
+                const params = new URLSearchParams(window.location.search);
+                const page = params.get('Page') || params.get('page') || 1;
+
+                // Cập nhật lại form khi nhấn Back/Forward
+                params.forEach((value, key) => {
+                    $(`[name='${key}']`).val(value);
+                });
+
+                doSearchNoPush(parseInt(page));
+            };
+        });
     </script>
 }

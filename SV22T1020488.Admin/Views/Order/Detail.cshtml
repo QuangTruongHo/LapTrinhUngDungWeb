@@ -5,37 +5,34 @@
     var order = Model.Item1;
     var details = Model.Item2;
     decimal totalSum = 0;
+
+    // Hàm tiện ích để hiển thị thời gian hoặc dấu gạch nếu chưa có
+    string FormatDate(DateTime? date) => date.HasValue ? date.Value.ToString("dd/MM/yyyy HH:mm") : "---";
 }
 
 @section PageToolBar {
-    @* 1. KHỐI NÚT XỬ LÝ: Chỉ hiện khi đơn hàng CHƯA hoàn tất và CHƯA hủy *@
-    @if (order.Status != OrderStatusEnum.Completed && order.Status != OrderStatusEnum.Cancelled)
+    @if (order.Status != OrderStatusEnum.Completed &&
+         order.Status != OrderStatusEnum.Cancelled &&
+         order.Status != OrderStatusEnum.Rejected)
     {
         <div class="btn-group">
             <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
                 <i class="bi bi-gear me-1"></i> Xử lý đơn hàng
             </button>
             <ul class="dropdown-menu">
-                @* Duyệt đơn & Từ chối: Chỉ khi đơn hàng mới (New) *@
                 @if (order.Status == OrderStatusEnum.New)
                 {
                     <li><a class="dropdown-item open-modal" href="~/Order/Accept/@order.OrderID">Duyệt đơn hàng</a></li>
                     <li><a class="dropdown-item text-danger open-modal" href="~/Order/Reject/@order.OrderID">Từ chối đơn hàng</a></li>
                 }
-
-                @* Giao hàng: Chỉ khi đã duyệt (Accepted) *@
                 @if (order.Status == OrderStatusEnum.Accepted)
                 {
                     <li><a class="dropdown-item open-modal" href="~/Order/Shipping/@order.OrderID">Chuyển giao hàng</a></li>
                 }
-
-                @* Hoàn tất: Chỉ khi đang giao (Shipping) *@
                 @if (order.Status == OrderStatusEnum.Shipping)
                 {
                     <li><a class="dropdown-item open-modal" href="~/Order/Finish/@order.OrderID">Hoàn tất đơn hàng</a></li>
                 }
-
-                @* Hủy đơn: Chỉ khi mới hoặc đã duyệt *@
                 @if (order.Status == OrderStatusEnum.New || order.Status == OrderStatusEnum.Accepted)
                 {
                     <li><hr class="dropdown-divider"></li>
@@ -45,23 +42,19 @@
         </div>
     }
 
-    @* 2. NÚT XÓA: Hiện khi đơn hàng Mới, Đã hủy hoặc Bị từ chối (Không hiện khi đã Hoàn tất) *@
-    @if (order.Status == OrderStatusEnum.New ||
-             order.Status == OrderStatusEnum.Cancelled ||
-             order.Status == OrderStatusEnum.Rejected)
+    @if (order.Status == OrderStatusEnum.Cancelled || order.Status == OrderStatusEnum.Rejected)
     {
         <a href="~/Order/Delete/@order.OrderID" class="btn btn-danger ms-1 open-modal">
             <i class="bi bi-trash"></i> Xóa đơn hàng
         </a>
     }
 
-    @* 3. NÚT QUAY LẠI: Luôn luôn hiện *@
     <a href="~/Order" class="btn btn-secondary ms-1">
         <i class="bi bi-arrow-left"></i> Quay lại
     </a>
 }
 
-@* Phần hiển thị thông tin trạng thái trực quan *@
+@* Trạng thái đơn hàng *@
 <div class="alert alert-info mb-3">
     <i class="bi bi-info-circle me-2"></i>
     <strong>Trạng thái đơn hàng:</strong>
@@ -72,21 +65,27 @@
                 <text>Đơn hàng mới (Chờ duyệt)</text>
                 break;
             case OrderStatusEnum.Accepted:
-                <text>Đã xác nhận (Chờ giao hàng)</text>
+
+                <text>Đã xác nhận (Chờ giao)</text>
                 break;
             case OrderStatusEnum.Shipping:
+
                 <text>Đang giao hàng</text>
                 break;
             case OrderStatusEnum.Completed:
+
                 <text>Thành công (Đã kết thúc)</text>
                 break;
             case OrderStatusEnum.Cancelled:
+
                 <text>Đã hủy</text>
                 break;
             case OrderStatusEnum.Rejected:
+
                 <text>Bị từ chối</text>
                 break;
             default:
+
                 <text>Không xác định</text>
                 break;
         }
@@ -94,48 +93,72 @@
 </div>
 
 <div class="row">
+    @* CỘT 1: THÔNG TIN CHUNG & THỜI GIAN KHỞI TẠO *@
     <div class="col-md-4">
-        <div class="card card-outline card-primary mb-3">
-            <div class="card-header"><h5 class="card-title">Thông tin đơn hàng</h5></div>
+        <div class="card card-outline card-primary mb-3 h-100 shadow-sm">
+            <div class="card-header"><h5 class="card-title text-primary"><i class="bi bi-hash"></i> Đơn hàng & Khởi tạo</h5></div>
             <div class="card-body">
-                <p class="mb-1"><b>Mã đơn:</b> @order.OrderID</p>
-                <p class="mb-1"><b>Ngày lập:</b> @order.OrderTime.ToString("dd/MM/yyyy HH:mm")</p>
-                <p class="mb-0"><b>Nhân viên lập:</b> @order.EmployeeName</p>
+                <p class="mb-2"><b>Mã đơn:</b> <span class="text-primary fw-bold">#@order.OrderID</span></p>
+                <p class="mb-2"><b>Nhân viên lập:</b> @order.EmployeeName</p>
+                <hr />
+                <p class="mb-2"><b>1. Ngày lập:</b> <span class="float-end text-muted small">@FormatDate(order.OrderTime)</span></p>
+                <p class="mb-0"><b>2. Ngày duyệt:</b> <span class="float-end text-muted small">@FormatDate(order.AcceptTime)</span></p>
             </div>
         </div>
     </div>
+
+    @* CỘT 2: GIAO NHẬN & THỜI GIAN VẬN CHUYỂN *@
     <div class="col-md-4">
-        <div class="card card-outline card-info mb-3">
-            <div class="card-header"><h5 class="card-title">Khách hàng</h5></div>
+        <div class="card card-outline card-success mb-3 h-100 shadow-sm">
+            <div class="card-header"><h5 class="card-title text-success"><i class="bi bi-truck"></i> Giao nhận & Kết thúc</h5></div>
             <div class="card-body">
-                <p class="mb-1"><b>Tên:</b> @order.CustomerName (@order.CustomerContactName)</p>
-                <p class="mb-1"><b>SĐT:</b> @order.CustomerPhone</p>
-                <p class="mb-0"><b>Email:</b> @order.CustomerEmail</p>
+                <p class="mb-2"><b>Người giao:</b> @(string.IsNullOrEmpty(order.ShipperName) ? "Chưa có" : order.ShipperName)</p>
+                <p class="mb-2"><b>Khu vực:</b> @order.DeliveryProvince</p>
+                <hr />
+                <p class="mb-2"><b>3. Ngày giao:</b> <span class="float-end text-muted small">@FormatDate(order.ShippedTime)</span></p>
+
+                @* CHỈ HIỂN THỊ NGÀY HOÀN TẤT NẾU KHÔNG PHẢI LÀ HỦY HOẶC TỪ CHỐI *@
+                @if (order.Status != OrderStatusEnum.Cancelled && order.Status != OrderStatusEnum.Rejected)
+                {
+                    <p class="mb-0"><b>4. Ngày hoàn tất:</b> <span class="float-end text-muted small">@FormatDate(order.FinishedTime)</span></p>
+                }
+                else
+                {
+                    <p class="mb-0 text-danger"><b>Kết thúc:</b> <span class="float-end small">Đã dừng xử lý</span></p>
+                }
             </div>
         </div>
     </div>
+
+    @* CỘT 3: THÔNG TIN KHÁCH HÀNG *@
     <div class="col-md-4">
-        <div class="card card-outline card-success mb-3">
-            <div class="card-header"><h5 class="card-title">Giao nhận</h5></div>
+        <div class="card card-outline card-info mb-3 h-100 shadow-sm">
+            <div class="card-header"><h5 class="card-title text-info"><i class="bi bi-person"></i> Khách hàng nhận</h5></div>
             <div class="card-body">
-                <p class="mb-1"><b>Người giao:</b> @(string.IsNullOrEmpty(order.ShipperName) ? "Chưa có" : order.ShipperName)</p>
-                <p class="mb-1"><b>Địa chỉ nhận:</b> @order.DeliveryAddress</p>
-                <p class="mb-0"><b>Tỉnh thành:</b> @order.DeliveryProvince</p>
+                <p class="mb-2"><b>Tên:</b> @order.CustomerName</p>
+                <p class="mb-2"><b>Điện thoại:</b> @order.CustomerPhone</p>
+                <p class="mb-0"><b>Địa chỉ:</b> @order.DeliveryAddress</p>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card">
+@* BẢNG CHI TIẾT MẶT HÀNG - Đã được thêm khoảng hở mt-4 *@
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="card-title fw-bold mb-0 text-secondary">
+            <i class="bi bi-list-ul me-2"></i>Chi tiết các mặt hàng trong đơn
+        </h5>
+    </div>
     <div class="card-body p-0">
-        <table class="table table-striped table-bordered mb-0">
-            <thead class="bg-light">
-                <tr class="text-center">
-                    <th style="width:50px">STT</th>
-                    <th>Tên hàng</th>
+        <table class="table table-hover table-bordered mb-0">
+            <thead class="table-light">
+                <tr class="text-center text-nowrap">
+                    <th style="width:60px">STT</th>
+                    <th>Tên sản phẩm</th>
                     <th style="width:100px">Số lượng</th>
                     <th style="width:150px">Giá bán</th>
-                    <th style="width:150px">Thành tiền</th>
+                    <th style="width:180px">Thành tiền</th>
                 </tr>
             </thead>
             <tbody>
@@ -148,24 +171,28 @@
                         totalSum += thanhTien;
                         <tr>
                             <td class="text-center">@(stt++)</td>
-                            <td>@item.ProductName</td>
+                            <td class="ps-3">@item.ProductName</td>
                             <td class="text-center">@item.Quantity</td>
-                            <td class="text-end">@item.SalePrice.ToString("N0")</td>
-                            <td class="text-end">@thanhTien.ToString("N0")</td>
+                            <td class="text-end pe-3">@item.SalePrice.ToString("N0")</td>
+                            <td class="text-end pe-3 fw-bold text-dark">@thanhTien.ToString("N0")</td>
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="5" class="text-center">Đơn hàng chưa có chi tiết mặt hàng</td>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox me-2"></i>Đơn hàng chưa có chi tiết mặt hàng
+                        </td>
                     </tr>
                 }
             </tbody>
             <tfoot>
-                <tr>
-                    <th colspan="4" class="text-end">Tổng cộng:</th>
-                    <th class="text-end text-danger" style="font-size:1.2rem">@totalSum.ToString("N0") VNĐ</th>
+                <tr class="bg-light">
+                    <th colspan="4" class="text-end pe-3 py-3">Tổng cộng:</th>
+                    <th class="text-end text-danger pe-3 py-3" style="font-size:1.4rem">
+                        @totalSum.ToString("N0") <small>VNĐ</small>
+                    </th>
                 </tr>
             </tfoot>
         </table>

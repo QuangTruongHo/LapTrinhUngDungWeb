@@ -14,7 +14,7 @@
                         </h6>
                     </div>
                     <div class="col text-end">
-                        <a class="btn btn-sm btn-primary" href="~/Product/CreatePhoto/@ViewBag.ProductID?method=add">
+                        <a class="btn btn-sm btn-primary" href="~/Product/CreatePhoto/@ViewBag.ProductID">
                             <i class="bi bi-plus-circle me-1"></i>
                             Thêm ảnh
                         </a>
@@ -60,12 +60,12 @@
                                     </td>
                                     <td class="text-center text-nowrap align-middle">
                                         <a class="btn btn-sm btn-outline-primary"
-                                           href="~/Product/CreatePhoto/@item.ProductID?method=edit&photoId=@item.PhotoID">
+                                           href="~/Product/EditPhoto/@item.ProductID?photoId=@item.PhotoID">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <a class="btn btn-sm btn-outline-danger"
-                                           href="~/Product/CreatePhoto/@item.ProductID?method=delete&photoId=@item.PhotoID"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa ảnh này không?')">
+                                        <a class="btn btn-sm btn-outline-danger btn-delete-confirm"
+                                           href="~/Product/DeletePhoto/@item.ProductID?photoId=@item.PhotoID"
+                                           data-message="Ảnh này sẽ bị xóa khỏi thư viện mặt hàng!">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </td>

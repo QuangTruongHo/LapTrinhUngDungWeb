@@ -54,7 +54,7 @@ namespace SV22T1020488.DataLayers.SQLServer
             using (var cn = new SqlConnection(_connectionString))
             {
                 var sql = @"SELECT CAST(CustomerID AS NVARCHAR) AS UserId, Email AS UserName, 
-                        CustomerName AS DisplayName, N'' AS Photo, N'customer' AS RoleNames
+                        CustomerName AS DisplayName, N'' AS Photo, N'customer' AS RoleNames,Phone
                         FROM Customers WHERE Email = @userName AND Password = @password 
                         AND (IsLocked = 0 OR IsLocked IS NULL)";
                 return await cn.QueryFirstOrDefaultAsync<UserAccount>(sql, new { userName, password });

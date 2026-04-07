@@ -66,11 +66,21 @@
         </div>
     </div>
 
+    @* --- NHÚNG SCRIPT THEO THỨ TỰ CHUẨN --- *@
+
+    @* 1. jQuery phải có mặt đầu tiên *@
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    @* 2. Các thư viện bổ trợ *@
     <script src="~/lib/flatpickr/flatpickr.min.js"></script>
     <script src="~/lib/flatpickr/l10n/vn.js"></script>
     <script src="~/lib/autonumeric/autonumeric.js"></script>
     <script src="~/lib/bootstrap/bootstrap.bundle.min.js"></script>
-    <script type="module" src="~/lib/adminlte/js/adminlte.js"></script>
+
+    @* 3. Giao diện AdminLTE (bỏ type=module nếu file js này hỗ trợ nhúng thường để ổn định hơn) *@
+    <script src="~/lib/adminlte/js/adminlte.js"></script>
+
+    @* 4. Scripts của hệ thống *@
     <script src="~/js/site.js"></script>
 
     <script>
@@ -154,6 +164,8 @@
             return false;
         }
     </script>
+
+    @* 5. Scripts riêng của từng View (như Script xóa ở trang Edit) *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,50 +1,50 @@
 ﻿@model SV22T1020488.Models.Catalog.ProductPhoto
 @{
-    ViewBag.Title = Model.PhotoID == 0 ? "Thêm ảnh cho mặt hàng" : "Thay đổi ảnh mặt hàng";
+    // Cố định tiêu đề là Chỉnh sửa vì file này chỉ dùng để Edit
+    ViewBag.Title = "Thay đổi ảnh mặt hàng";
 }
 
 @section PageToolBar {
     <button type="submit" form="formEdit" class="btn btn-primary">
         <i class="bi bi-save"></i>
-        Lưu thông tin
+        Lưu thay đổi
     </button>
 
-    @* Quay lại trang edit sản phẩm và nhảy đến đúng tab photos *@
+    @* Quay lại đúng tab ảnh của sản phẩm *@
     <a href="~/Product/Edit/@Model.ProductID#photos" class="btn btn-secondary ms-1">
         <i class="bi bi-arrow-left"></i>
-        Quay lại
+        Hủy bỏ
     </a>
 }
 
 <div class="row justify-content-center mt-3">
     <div class="col-md-8">
-        <div class="card card-outline card-info shadow-sm">
+        <div class="card card-outline card-success shadow-sm">
             <div class="card-header">
-                <h5 class="mb-0 fw-bold text-info">
-                    <i class="bi bi-image me-2"></i>@ViewBag.Title
+                <h5 class="mb-0 fw-bold text-success">
+                    <i class="bi bi-pencil-square me-2"></i>@ViewBag.Title
                 </h5>
             </div>
 
             <div class="card-body p-4">
                 <form id="formEdit" action="~/Product/SavePhoto" method="post" enctype="multipart/form-data">
-                    @* Các trường ẩn bắt buộc *@
+                    @* Các trường ẩn cực kỳ quan trọng để biết đang sửa ảnh nào *@
                     <input type="hidden" asp-for="PhotoID" />
                     <input type="hidden" asp-for="ProductID" />
 
-                    @* Trường ẩn Photo chứa tên file ảnh hiện tại *@
+                    @* Giữ tên file ảnh cũ nếu người dùng không chọn file mới *@
                     <input type="hidden" asp-for="Photo" id="PhotoData" />
 
-                    @* Hiển thị lỗi tổng quát nếu có *@
                     @if (!ViewData.ModelState.IsValid)
                     {
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Vui lòng kiểm tra lại thông tin ảnh.
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Vui lòng kiểm tra lại dữ liệu.
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     }
 
                     <div class="row mb-3 align-items-center">
-                        <label class="col-sm-3 fw-semibold">Chọn file ảnh</label>
+                        <label class="col-sm-3 fw-semibold">Thay đổi ảnh</label>
                         <div class="col-sm-9">
                             <input type="file"
                                    name="uploadPhoto"
@@ -52,15 +52,14 @@
                                    class="form-control"
                                    accept="image/*"
                                    onchange="previewImage(this)" />
-                            <div class="form-text italic small mt-1 text-muted">Hỗ trợ các định dạng: .jpg, .png, .gif, .webp</div>
+                            <div class="form-text italic small mt-1 text-muted">Bỏ trống nếu muốn giữ nguyên ảnh cũ</div>
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <label class="col-sm-3 fw-semibold">Xem trước</label>
+                        <label class="col-sm-3 fw-semibold">Ảnh hiện tại</label>
                         <div class="col-sm-9">
                             @{
-                                // Ưu tiên hiển thị ảnh từ thư mục products, nếu trống dùng nophoto
                                 string photoSrc = string.IsNullOrEmpty(Model.Photo)
                                 ? Url.Content("~/images/products/nophoto.png")
                                 : Url.Content($"~/images/products/{Model.Photo}");
@@ -68,7 +67,7 @@
                             <img id="imgPreview"
                                  src="@photoSrc"
                                  class="img-thumbnail shadow-sm"
-                                 style="max-height:300px; min-width:150px; object-fit:contain; border: 2px dashed #dee2e6;"
+                                 style="max-height:300px; min-width:150px; object-fit:contain; border: 2px solid #198754;"
                                  onerror="this.src='@Url.Content("~/images/products/nophoto.png")'" />
                         </div>
                     </div>
@@ -78,8 +77,7 @@
                         <div class="col-sm-9">
                             <input type="text" asp-for="Description"
                                    class="form-control"
-                                   placeholder="Ví dụ: Mặt trước, Mặt nghiêng, Ảnh hộp..."
-                                   autofocus />
+                                   placeholder="Nhập mô tả ảnh..." />
                             <span asp-validation-for="Description" class="text-danger small italic"></span>
                         </div>
                     </div>
@@ -104,7 +102,7 @@
                                        asp-for="IsHidden"
                                        id="IsHidden" />
                                 <label class="form-check-label text-dark fw-medium" for="IsHidden">
-                                    Ẩn ảnh này khỏi trang bán hàng
+                                    Tạm ẩn ảnh này
                                 </label>
                             </div>
                         </div>
@@ -112,12 +110,12 @@
                 </form>
             </div>
 
-            @if (Model.PhotoID > 0)
-            {
-                <div class="card-footer bg-light text-center py-2">
-                    <small class="text-muted">Mã số ảnh: <strong>#@Model.PhotoID</strong> | Tên tệp: <strong>@Model.Photo</strong></small>
-                </div>
-            }
+            <div class="card-footer bg-light text-center py-2">
+                <small class="text-muted">
+                    Đang chỉnh sửa ảnh mã số: <strong>#@Model.PhotoID</strong>
+                    | Tên file: <strong>@(string.IsNullOrEmpty(Model.Photo) ? "Chưa có file" : Model.Photo)</strong>
+                </small>
+            </div>
         </div>
     </div>
 </div>
@@ -127,11 +125,12 @@
         if (input.files && input.files[0]) {
             var reader = new FileReader();
             reader.onload = function (e) {
+                document.getElementById('imgPreview').style.border = "2px dashed #0dcaf0";
                 document.getElementById('imgPreview').src = e.target.result;
             }
             reader.readAsDataURL(input.files[0]);
 
-            // Xóa giá trị Photo cũ để Controller nhận biết có file mới
+            // Xóa giá trị cũ để server biết có ảnh mới được upload lên
             document.getElementById('PhotoData').value = "";
         }
     }
@@ -142,18 +141,17 @@
         font-style: italic;
     }
 
-    .card-outline.card-info {
-        border-top: 3px solid #0dcaf0;
+    .card-outline.card-success {
+        border-top: 3px solid #198754;
     }
 
     .img-thumbnail {
         transition: all .3s ease;
-        background-color: #f8f9fa;
+        background-color: #fff;
     }
 
         .img-thumbnail:hover {
-            transform: scale(1.01);
-            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+            transform: scale(1.02);
         }
 
     .text-danger.small.italic {

@@ -4,6 +4,8 @@
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+@* Thêm SweetAlert2 CDN *@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
     :root {
@@ -126,6 +128,7 @@
         align-items: center;
         color: var(--neo-border);
         font-size: 0.85rem;
+        cursor: pointer;
     }
 
         .btn-neo-action:hover {
@@ -145,7 +148,7 @@
 
     .btn-neo-clear {
         background: #ff595e;
-        color: white
+        color: white;
     }
 
     .btn-neo-checkout {
@@ -157,6 +160,22 @@
     .total-row {
         background: var(--neo-pink) !important;
         font-size: 1.2rem;
+    }
+
+    /* Custom SweetAlert Neo-Brutalism */
+    .neo-swal-popup {
+        border: 5px solid var(--neo-border) !important;
+        border-radius: 0 !important;
+        box-shadow: 10px 10px 0px var(--neo-shadow) !important;
+        font-family: 'Space Mono', monospace !important;
+    }
+
+    .neo-swal-button {
+        border: 3px solid var(--neo-border) !important;
+        border-radius: 0 !important;
+        box-shadow: 4px 4px 0px var(--neo-shadow) !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
     }
 </style>
 
@@ -210,7 +229,9 @@
                                     <span class="item-total">@item.TotalPrice.ToString("N0")</span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="@Url.Action("Remove", "Cart", new { id = item.ProductID })" class="btn-neo-action btn-neo-delete p-1 px-2">
+                                    <a href="javascript:void(0)"
+                                       onclick="confirmRemoveItem('@Url.Action("Remove", "Cart", new { id = item.ProductID })')"
+                                       class="btn-neo-action btn-neo-delete p-1 px-2">
                                         <i class="bi bi-trash3-fill"></i>
                                     </a>
                                 </td>
@@ -230,7 +251,7 @@
             </div>
 
             <div class="mt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <a href="@Url.Action("Clear", "Cart")" class="btn-neo-action btn-neo-clear" onclick="return confirm('Làm trống giỏ hàng?')">
+                <a href="javascript:void(0)" class="btn-neo-action btn-neo-clear" onclick="confirmClearCart()">
                     <i class="bi bi-trash"></i> LÀM TRỐNG GIỎ
                 </a>
                 <a href="@Url.Action("Checkout", "Order")" class="btn-neo-action btn-neo-checkout">
@@ -252,13 +273,56 @@
     <script>
         // Hàm quay lại và giữ vị trí cuộn trang cũ
         function goBackWithPosition() {
-            // Nếu trình duyệt có lịch sử, nó sẽ quay lại trang trước đó (Index/SearchResult)
-            // Tại trang Index, script đã có sẵn logic check 'last_scroll' để tự động cuộn xuống.
             if (document.referrer.indexOf(window.location.host) !== -1) {
                 window.history.back();
             } else {
                 window.location.href = '@Url.Action("Index", "Home")';
             }
+        }
+
+        // Hàm xác nhận làm trống giỏ hàng bằng SweetAlert2
+        function confirmClearCart() {
+            Swal.fire({
+                title: 'DỌN SẠCH GIỎ HÀNG?',
+                text: "Tất cả sản phẩm sẽ bị xóa khỏi giỏ!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ff595e',
+                cancelButtonColor: '#1a1a1a',
+                confirmButtonText: 'ĐỒNG Ý, XÓA HẾT!',
+                cancelButtonText: 'HỦY',
+                customClass: {
+                    popup: 'neo-swal-popup',
+                    confirmButton: 'btn-neo-action btn-neo-clear neo-swal-button',
+                    cancelButton: 'btn-neo-action btn-neo-back neo-swal-button'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '@Url.Action("Clear", "Cart")';
+                }
+            });
+        }
+
+        // Hàm xác nhận xóa từng sản phẩm bằng SweetAlert2
+        function confirmRemoveItem(url) {
+            Swal.fire({
+                title: 'XÓA SẢN PHẨM NÀY?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ff595e',
+                cancelButtonColor: '#1a1a1a',
+                confirmButtonText: 'XÓA LUÔN!',
+                cancelButtonText: 'KHÔNG',
+                customClass: {
+                    popup: 'neo-swal-popup',
+                    confirmButton: 'btn-neo-action btn-neo-clear neo-swal-button',
+                    cancelButton: 'btn-neo-action btn-neo-back neo-swal-button'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
         }
 
         function updateQty(btn, change) {

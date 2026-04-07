@@ -23,15 +23,6 @@
             <div class="card-body login-card-body">
                 <p class="login-box-msg">Đăng nhập để bắt đầu phiên làm việc</p>
 
-                @* HIỂN THỊ THÔNG BÁO THÀNH CÔNG TỪ ĐĂNG KÝ GỬI VỀ *@
-                @if (TempData["Message"] != null)
-                {
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Message"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                }
-
                 <form action="~/Account/Login" method="post">
                     @Html.AntiForgeryToken()
 
@@ -40,16 +31,17 @@
                                name="username" value="@ViewBag.UserName" required />
                         <div class="input-group-text"><span class="bi bi-envelope"></span></div>
                     </div>
+
                     <div class="input-group mb-3">
                         <input type="password" class="form-control" placeholder="Mật khẩu" name="password" required />
                         <div class="input-group-text"><span class="bi bi-lock-fill"></span></div>
                     </div>
 
-                    @* HIỂN THỊ LỖI ĐĂNG NHẬP *@
+                    @* Hiển thị lỗi đăng nhập từ Server nếu có *@
                     @if (!ViewData.ModelState.IsValid)
                     {
                         <div class="mb-3 text-center">
-                            @Html.ValidationMessage("Error", null, new { @class = "text-danger" })
+                            @Html.ValidationMessage("Error", null, new { @class = "text-danger small" })
                         </div>
                     }
 
@@ -57,32 +49,24 @@
                         <div class="col-12">
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                                    <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
                                 </button>
                             </div>
                         </div>
                     </div>
                 </form>
 
-                <hr />
-
-                @* NÚT ĐĂNG KÝ *@
-                <div class="row mt-3">
-                    <div class="col-12 text-center">
-                        <p class="mb-1 text-muted">Chưa có tài khoản?</p>
-                        <a href="~/Account/Register" class="btn btn-outline-success btn-sm w-100">
-                            <i class="bi bi-person-plus-fill"></i> Đăng ký tài khoản mới
-                        </a>
-                    </div>
+                <div class="mt-4 text-center">
+                    <small class="text-muted">© @DateTime.Now.Year - Hệ thống quản lý nội bộ</small>
                 </div>
 
             </div>
         </div>
     </div>
+
     <script src="~/lib/overlay-scrollbars/overlayscrollbars.browser.es6.min.js"></script>
     <script src="~/lib/popperjs/popper.min.js"></script>
     <script src="~/lib/bootstrap/bootstrap.bundle.min.js"></script>
     <script type="module" src="~/lib/adminlte/js/adminlte.js"></script>
-
 </body>
 </html>

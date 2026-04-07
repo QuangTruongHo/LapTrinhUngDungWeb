@@ -72,5 +72,8 @@ namespace SV22T1020488.DataLayers.Interfaces
         /// <param name="productID"></param>
         /// <returns></returns>
         Task<bool> DeleteDetailAsync(int orderID, int productID);
+        
+        Task<int> CountOrdersAsync(int status = 0);
+        Task<decimal> GetRevenueAsync(DateTime fromDate, DateTime toDate);
     }
 }

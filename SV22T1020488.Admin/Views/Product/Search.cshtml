@@ -18,7 +18,7 @@
                     <th style="width:120px;">Đơn vị</th>
                     <th style="width:120px;">Giá</th>
                     <th class="text-center" style="width:140px;">Trạng thái</th>
-                    <th class="text-center" style="width:100px;">Thao tác</th>
+                    <th class="text-center" style="width:130px;">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,7 +26,6 @@
                 {
                     <tr>
                         <td class="text-center">
-                            @* LOGIC: Kiểm tra ảnh Base64 hoặc ảnh từ thư mục *@
                             @{
                                 string photoUrl = Url.Content("~/images/products/demo.png");
                                 if (!string.IsNullOrEmpty(item.Photo))
@@ -48,7 +47,11 @@
                                  onerror="this.src='@Url.Content("~/images/products/demo.png")'" />
                         </td>
                         <td>
-                            <strong>@item.ProductName</strong><br />
+                            @* --- Bấm vào tên để xem chi tiết --- *@
+                            <a href="~/Product/Detail/@item.ProductID" class="text-decoration-none text-dark">
+                                <strong>@item.ProductName</strong>
+                            </a>
+                            <br />
                             <small class="text-muted">
                                 @item.ProductDescription
                             </small>
@@ -66,10 +69,18 @@
                             }
                         </td>
                         <td class="text-center text-nowrap">
-                            <a href="~/Product/Edit/@item.ProductID" class="btn btn-sm btn-primary">
+                            @* --- Nút Xem chi tiết liên kết đến Detail --- *@
+                            <a href="~/Product/Detail/@item.ProductID" class="btn btn-sm btn-info text-white" title="Xem chi tiết">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            @* Nút Sửa vẫn giữ nguyên Edit *@
+                            <a href="~/Product/Edit/@item.ProductID" class="btn btn-sm btn-primary" title="Sửa">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="~/Product/Delete/@item.ProductID" class="btn btn-sm btn-danger">
+
+                            @* Nút Xóa vẫn giữ nguyên Delete *@
+                            <a href="~/Product/Delete/@item.ProductID" class="btn btn-sm btn-danger" title="Xóa">
                                 <i class="bi bi-trash"></i>
                             </a>
                         </td>
@@ -100,7 +111,6 @@
                     else
                     {
                         <li class="page-item">
-                            @* Giữ nguyên logic gọi hàm doSearch *@
                             <a class="page-link" href="javascript:;" onclick="doSearch(@p.Page)">
                                 @p.Page
                             </a>

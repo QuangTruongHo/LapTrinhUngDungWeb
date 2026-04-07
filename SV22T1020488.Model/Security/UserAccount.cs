@@ -21,6 +21,7 @@
         /// Địa chỉ email (nếu có)
         /// </summary>
         public string Email { get; set; } = "";
+        public string? Phone { get; set; }
         /// <summary>
         /// Tên fie ảnh đại diện của người dùng (nếu có)
         /// </summary>

@@ -50,11 +50,19 @@
 
                     <div class="row">
                         <div class="col-md-3 text-center border-end">
-                            @* Xử lý hiển thị ảnh mặt hàng *@
-                            <img src="~/@(string.IsNullOrEmpty(Model.Photo) ? "images/products/nophoto.png" : Model.Photo)"
+                            @* --- PHẦN HIỂN THỊ ẢNH ĐÃ SỬA --- *@
+                            @{
+                                // Kiểm tra nếu ảnh trống thì dùng ảnh mặc định, ngược lại dùng ảnh trong thư mục products
+                                string imagePath = string.IsNullOrEmpty(Model.Photo)
+                                ? Url.Content("~/images/products/nophoto.png")
+                                : Url.Content($"~/images/products/{Model.Photo}");
+                            }
+                            <img src="@imagePath"
                                  class="img-fluid rounded shadow-sm border"
-                                 style="max-height: 200px"
-                                 alt="@Model.ProductName" />
+                                 style="max-height: 200px; width: auto; object-fit: contain;"
+                                 alt="@Model.ProductName"
+                                 onerror="this.onerror=null;this.src='@Url.Content("~/images/products/nophoto.png")';" />
+                            @* ------------------------------- *@
                         </div>
                         <div class="col-md-9">
                             <dl class="row mb-0 ps-3">
@@ -73,7 +81,6 @@
                         </div>
                     </div>
 
-                    @* Hiển thị lỗi ModelOnly nếu có lỗi phát sinh từ Controller *@
                     <div asp-validation-summary="ModelOnly" class="text-danger mt-3 small"></div>
                 </form>
             </div>

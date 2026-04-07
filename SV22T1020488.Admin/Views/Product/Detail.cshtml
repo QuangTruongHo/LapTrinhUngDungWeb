@@ -5,18 +5,18 @@
 }
 
 <div class="container-fluid pt-3">
-    @* --- THÔNG TIN CHÍNH --- *@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
             <h5 class="mb-0 fw-bold text-primary">
                 <i class="bi bi-info-circle me-2"></i>Thông tin mặt hàng
             </h5>
-            <div>
-                <a href="~/Product/Edit/@Model.ProductID" class="btn btn-sm btn-primary">
-                    <i class="bi bi-pencil-square"></i> Chỉnh sửa chính
+
+            <div class="ms-auto">
+                <a href="~/Product/Edit/@Model.ProductID" class="btn btn-sm btn-primary shadow-sm">
+                    <i class="bi bi-pencil-square me-1"></i> Chỉnh sửa chính
                 </a>
-                <a href="~/Product" class="btn btn-sm btn-outline-secondary ms-1">
-                    <i class="bi bi-arrow-left"></i> Quay lại
+                <a href="~/Product" class="btn btn-sm btn-outline-secondary ms-2 shadow-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Quay lại
                 </a>
             </div>
         </div>
@@ -24,7 +24,6 @@
             <div class="row">
                 <div class="col-md-3 text-center border-end">
                     @{
-                        // Xử lý ảnh đại diện: Ưu tiên Base64, sau đó là file vật lý, cuối cùng là nophoto
                         string photoUrl = Url.Content("~/images/products/nophoto.png");
                         if (!string.IsNullOrEmpty(Model.Photo))
                         {
@@ -41,7 +40,7 @@
                     <img src="@photoUrl"
                          class="img-fluid rounded shadow-sm border"
                          alt="@Model.ProductName"
-                         style="max-height: 250px; object-fit: contain;"
+                         style="max-height: 250px; width: 100%; object-fit: contain;"
                          onerror="this.src='@Url.Content("~/images/products/nophoto.png")'" />
                 </div>
                 <div class="col-md-9 ps-md-4">
@@ -50,13 +49,13 @@
                         <div class="col-sm-6">
                             <p class="mb-1 text-muted small text-uppercase fw-bold">Loại hàng</p>
                             <p class="fs-6 fw-medium text-dark">
-                                @((await CatalogDataService.GetCategoryAsync(Model.CategoryID ?? 0))?.CategoryName ?? "Không xác định")
+                                @((Model.CategoryID > 0) ? (await CatalogDataService.GetCategoryAsync(Model.CategoryID.Value))?.CategoryName : "Chưa phân loại")
                             </p>
                         </div>
                         <div class="col-sm-6">
                             <p class="mb-1 text-muted small text-uppercase fw-bold">Nhà cung cấp</p>
                             <p class="fs-6 fw-medium text-dark">
-                                @((await PartnerDataService.GetSupplierAsync(Model.SupplierID ?? 0))?.SupplierName ?? "Không xác định")
+                                @((Model.SupplierID > 0) ? (await PartnerDataService.GetSupplierAsync(Model.SupplierID.Value))?.SupplierName : "Chưa xác định")
                             </p>
                         </div>
                         <div class="col-sm-4">
@@ -80,7 +79,9 @@
                         </div>
                         <div class="col-sm-12">
                             <p class="mb-1 text-muted small text-uppercase fw-bold">Mô tả sản phẩm</p>
-                            <p class="text-secondary italic">@(string.IsNullOrEmpty(Model.ProductDescription) ? "Không có mô tả cho sản phẩm này." : Model.ProductDescription)</p>
+                            <p class="text-secondary italic" style="white-space: pre-line;">
+                                @(string.IsNullOrEmpty(Model.ProductDescription) ? "Không có mô tả cho sản phẩm này." : Model.ProductDescription)
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -89,14 +90,10 @@
     </div>
 
     <div class="row">
-        @* --- THƯ VIỆN ẢNH --- *@
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <div class="card-header bg-white py-3">
                     <h6 class="mb-0 fw-bold text-info"><i class="bi bi-images me-2"></i>Thư viện ảnh</h6>
-                    <a href="~/Product/Photo/@Model.ProductID?method=add" class="btn btn-xs btn-outline-primary">
-                        <i class="bi bi-plus-lg"></i> Thêm ảnh
-                    </a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -105,14 +102,13 @@
                                 <tr>
                                     <th class="ps-3" style="width:80px">Ảnh</th>
                                     <th>Thông tin ảnh</th>
-                                    <th class="text-center" style="width:100px">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @{
                                     var photos = await CatalogDataService.ListPhotosAsync(Model.ProductID);
                                 }
-                                @if (photos.Any())
+                                @if (photos != null && photos.Any())
                                 {
                                     foreach (var p in photos)
                                     {
@@ -130,19 +126,13 @@
                                                     | @(p.IsHidden ? "❌ Đang ẩn" : "✅ Hiển thị")
                                                 </div>
                                             </td>
-                                            <td class="text-center">
-                                                <div class="btn-group">
-                                                    <a href="~/Product/Photo/@Model.ProductID?method=edit&photoId=@p.PhotoID" class="btn btn-xs btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                                                    <a href="~/Product/Photo/@Model.ProductID?method=delete&photoId=@p.PhotoID" class="btn btn-xs btn-outline-danger" onclick="return confirm('Xóa ảnh này?')"><i class="bi bi-trash"></i></a>
-                                                </div>
-                                            </td>
                                         </tr>
                                     }
                                 }
                                 else
                                 {
                                     <tr>
-                                        <td colspan="3" class="text-center py-4 text-muted italic">Chưa có ảnh thư viện.</td>
+                                        <td colspan="2" class="text-center py-4 text-muted italic">Chưa có ảnh thư viện.</td>
                                     </tr>
                                 }
                             </tbody>
@@ -152,14 +142,10 @@
             </div>
         </div>
 
-        @* --- THUỘC TÍNH --- *@
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <div class="card-header bg-white py-3">
                     <h6 class="mb-0 fw-bold text-success"><i class="bi bi-list-stars me-2"></i>Thuộc tính mặt hàng</h6>
-                    <a href="~/Product/Attribute/@Model.ProductID?method=add" class="btn btn-xs btn-outline-success">
-                        <i class="bi bi-plus-lg"></i> Thêm thuộc tính
-                    </a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -168,33 +154,26 @@
                                 <tr>
                                     <th class="ps-3">Tên thuộc tính</th>
                                     <th>Giá trị</th>
-                                    <th class="text-center" style="width:100px">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @{
                                     var attributes = await CatalogDataService.ListAttributesAsync(Model.ProductID);
                                 }
-                                @if (attributes.Any())
+                                @if (attributes != null && attributes.Any())
                                 {
                                     foreach (var a in attributes)
                                     {
                                         <tr>
                                             <td class="ps-3 fw-bold text-secondary">@a.AttributeName</td>
                                             <td class="fw-medium">@a.AttributeValue</td>
-                                            <td class="text-center">
-                                                <div class="btn-group">
-                                                    <a href="~/Product/Attribute/@Model.ProductID?method=edit&attributeId=@a.AttributeID" class="btn btn-xs btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                                                    <a href="~/Product/Attribute/@Model.ProductID?method=delete&attributeId=@a.AttributeID" class="btn btn-xs btn-outline-danger" onclick="return confirm('Xóa thuộc tính này?')"><i class="bi bi-trash"></i></a>
-                                                </div>
-                                            </td>
                                         </tr>
                                     }
                                 }
                                 else
                                 {
                                     <tr>
-                                        <td colspan="3" class="text-center py-4 text-muted italic">Chưa có thông số kỹ thuật.</td>
+                                        <td colspan="2" class="text-center py-4 text-muted italic">Chưa có thông số kỹ thuật.</td>
                                     </tr>
                                 }
                             </tbody>
@@ -207,13 +186,6 @@
 </div>
 
 <style>
-    .btn-xs {
-        padding: 0.2rem 0.5rem;
-        font-size: 0.75rem;
-        line-height: 1.5;
-        border-radius: 0.2rem;
-    }
-
     .card {
         border-radius: 0.5rem;
         overflow: hidden;
@@ -237,5 +209,10 @@
 
     .bg-light {
         background-color: #f8f9fa !important;
+    }
+
+    .img-fluid:hover {
+        transform: scale(1.02);
+        transition: transform 0.3s ease;
     }
 </style>

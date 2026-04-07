@@ -3,7 +3,8 @@
 @model PagedResult<Product>
 @{
     Layout = null;
-    string defaultImg = "https://cdn-icons-png.flaticon.com/512/679/679821.png";
+    // Cập nhật đường dẫn ảnh mặc định nội bộ
+    string defaultImg = Url.Content("~/images/products/demo.png");
 }
 
 @if (Model.DataItems != null && Model.DataItems.Any())
@@ -13,17 +14,23 @@
         @foreach (var item in Model.DataItems)
         {
             <div class="col-lg-3 col-md-4 col-sm-6 product-item">
-                @* Bọc toàn bộ Card bằng một div có sự kiện click chuyển trang *@
                 <div class="card neo-card h-100"
                      style="border: 4px solid #1a1a1a; box-shadow: 8px 8px 0px #000; border-radius: 0; transition: 0.2s; background: #fff; cursor: pointer;"
-                     onclick="if(!$(event.target).closest('button, input').length) window.location.href='@Url.Content("~/Product/Detail/" + item.ProductID)'">
+                     onclick="if(!$(event.target).closest('button, input, a').length) window.location.href='@Url.Content("~/Product/Detail/" + item.ProductID)'">
 
                     @* KHU VỰC ẢNH *@
                     <div class="product-img-container" style="height: 200px; overflow: hidden; border-bottom: 4px solid #1a1a1a; background: #fff; display: flex; align-items: center; justify-content: center; position: relative;">
-                        <img src="@(string.IsNullOrEmpty(item.Photo) ? defaultImg : "/images/products/" + item.Photo)"
+                        @{
+                            // Ưu tiên ảnh từ database, nếu không có thì lấy ảnh demo
+                            var photoUrl = string.IsNullOrEmpty(item.Photo)
+                            ? defaultImg
+                            : Url.Content("~/images/products/" + item.Photo);
+                        }
+                        <img src="@photoUrl"
                              class="product-img"
+                             alt="@item.ProductName"
                              style="max-height: 100%; max-width: 100%; object-fit: contain; padding: 10px;"
-                             onerror="this.src='@defaultImg'">
+                             onerror="this.onerror=null; this.src='@defaultImg';">
                     </div>
 
                     <div class="card-body d-flex flex-column p-3">
@@ -111,7 +118,6 @@ else
 }
 
 <style>
-    /* 1. Reset & Base Style cho Card */
     .neo-card {
         border: 4px solid #1a1a1a !important;
         box-shadow: 8px 8px 0px #000 !important;
@@ -126,7 +132,6 @@ else
             box-shadow: 12px 12px 0px #000 !important;
         }
 
-    /* 2. Ảnh sản phẩm */
     .product-img-container {
         height: 200px;
         overflow: hidden;
@@ -135,7 +140,6 @@ else
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
     }
 
     .product-img {
@@ -150,13 +154,6 @@ else
         transform: scale(1.08);
     }
 
-    /* 3. Bộ chọn số lượng */
-    .qty-wrapper {
-        border: 3px solid #1a1a1a;
-        box-shadow: 3px 3px 0px #1a1a1a;
-        background: #fff;
-    }
-
     .btn-qty-minus, .btn-qty-plus {
         background: #eee;
         border: none;
@@ -165,92 +162,22 @@ else
         transition: all 0.2s;
     }
 
-    .btn-qty-minus {
-        border-right: 3px solid #1a1a1a;
-    }
-
-    .btn-qty-plus {
-        border-left: 3px solid #1a1a1a;
-    }
-
         .btn-qty-minus:hover, .btn-qty-plus:hover {
-            background: #f4d03f;
+            background: #f4d03f !important;
         }
 
-    .input-quantity-val {
-        width: 100%;
-        border: none;
-        outline: none;
-        font-weight: 900;
-        -webkit-appearance: none;
-        margin: 0;
+    .btn-add-to-cart:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 5px 5px 0px #1a1a1a;
+        background: #f8bbd0 !important;
     }
 
-        .input-quantity-val::-webkit-inner-spin-button,
-        .input-quantity-val::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-        }
-
-    /* 4. Nút Thêm vào giỏ */
-    .btn-add-to-cart {
-        background: #fff;
-        border: 3px solid #1a1a1a;
-        font-weight: 900;
-        width: 45px;
-        box-shadow: 3px 3px 0px #1a1a1a;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    .btn-buy-now:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: 7px 7px 0px #1a1a1a;
+        filter: brightness(1.05);
     }
 
-        .btn-add-to-cart:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 5px 5px 0px #1a1a1a;
-            background: #f8bbd0 !important;
-        }
-
-    /* 5. Nút Mua ngay */
-    .btn-buy-now {
-        background: #f4d03f;
-        border: 3px solid #1a1a1a;
-        font-weight: 900;
-        padding: 10px;
-        box-shadow: 4px 4px 0px #1a1a1a;
-        color: #1a1a1a !important;
-        text-transform: uppercase;
-        text-align: center;
-        text-decoration: none;
-        display: block;
-        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-        .btn-buy-now:hover {
-            transform: translate(-3px, -3px);
-            box-shadow: 7px 7px 0px #1a1a1a;
-            filter: brightness(1.05);
-        }
-
-    /* 6. Phân trang */
-    .btn-pagination {
-        border: 3px solid #1a1a1a !important;
-        border-radius: 0 !important;
-        font-weight: 900 !important;
-        background: #fff !important;
-        color: #1a1a1a !important;
-        transition: all 0.2s !important;
-    }
-
-        .btn-pagination:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 4px 4px 0px #1a1a1a;
-        }
-
-        .btn-pagination.active {
-            background: #1a1a1a !important;
-            color: #fff !important;
-            box-shadow: 4px 4px 0px #f4d03f !important;
-        }
-
-    /* 7. Hiệu ứng Fly & Cart Shake */
     .fly-gift-box {
         position: absolute;
         width: 50px;
@@ -283,69 +210,51 @@ else
     .cart-shake {
         animation: neo-shake 0.5s ease-in-out;
     }
+
     @@keyframes neo-shake {
-        0%
+        0% {
+            transform: scale(1.2) rotate(0deg);
+        }
 
-    {
-        transform: scale(1.2) rotate(0deg);
-    }
+        25% {
+            transform: scale(1.2) rotate(15deg);
+        }
 
-    25% {
-        transform: scale(1.2) rotate(15deg);
-    }
+        50% {
+            transform: scale(1.2) rotate(-15deg);
+        }
 
-    50% {
-        transform: scale(1.2) rotate(-15deg);
-    }
+        75% {
+            transform: scale(1.2) rotate(10deg);
+        }
 
-    75% {
-        transform: scale(1.2) rotate(10deg);
-    }
-
-    100% {
-        transform: scale(1) rotate(0deg);
-    }
-
-    }
-
-    /* Click Effect */
-    button:active, .btn-buy-now:active {
-        transform: translate(0, 0) !important;
-        box-shadow: 1px 1px 0px #1a1a1a !important;
+        100% {
+            transform: scale(1) rotate(0deg);
+        }
     }
 </style>
 
 <script>
-        $(document).ready(function () {
-        // --- 1. LƯU VỊ TRÍ KHI CLICK VÀO CARD SẢN PHẨM ---
-        // Sử dụng delegation trên document để không bị mất sự kiện khi Ajax load
-        $(document).off('click', '.neo-card').on('click', '.neo-card', function (e) {
-            // Chỉ lưu vị trí nếu không click trúng các nút chức năng
-            if (!$(e.target).closest('button, input, a, .btn-add-to-cart').length) {
-                sessionStorage.setItem('last_scroll', $(window).scrollTop());
-            }
+    $(document).ready(function () {
+        // Ngăn sự kiện click Card khi nhấn vào input/nút/link
+        $(document).off('click', '.neo-card button, .neo-card input, .neo-card a').on('click', '.neo-card button, .neo-card input, .neo-card a', function(e) {
+            e.stopPropagation();
         });
 
-        // --- 2. CÁC SỰ KIỆN GIỎ HÀNG VÀ SỐ LƯỢNG ---
-        $(document).off('click', '.btn-qty-plus').on('click', '.btn-qty-plus', function(e) {
-            e.stopPropagation();
+        // Xử lý nút tăng giảm số lượng
+        $(document).off('click', '.btn-qty-plus').on('click', '.btn-qty-plus', function() {
             var input = $(this).siblings('.input-quantity-val');
             input.val(parseInt(input.val()) + 1);
         });
 
-        $(document).off('click', '.btn-qty-minus').on('click', '.btn-qty-minus', function(e) {
-            e.stopPropagation();
+        $(document).off('click', '.btn-qty-minus').on('click', '.btn-qty-minus', function() {
             var input = $(this).siblings('.input-quantity-val');
-            var currentVal = parseInt(input.val());
-            if (currentVal > 1) {
-                input.val(currentVal - 1);
-            }
+            var val = parseInt(input.val());
+            if (val > 1) input.val(val - 1);
         });
 
+        // Ajax thêm vào giỏ hàng
         $(document).off('click', '.btn-add-to-cart').on('click', '.btn-add-to-cart', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
             var $button = $(this);
             var productId = $button.data('id');
             var $productItem = $button.closest('.product-item');
@@ -363,22 +272,18 @@ else
                             var cartOffset = $cartIcon.offset();
                             var imgOffset = $productImg.offset();
                             var $giftBox = $('<div class="fly-gift-box"></div>');
-
                             $giftBox.css({
                                 left: (imgOffset.left + $productImg.width() / 2) + 'px',
                                 top: (imgOffset.top + $productImg.height() / 2) + 'px',
                                 transform: 'translate(-50%, -50%)'
                             });
-
                             $('body').append($giftBox);
-
                             setTimeout(function () {
                                 $giftBox.css({
                                     left: (cartOffset.left + $cartIcon.width() / 2) + 'px',
                                     top: (cartOffset.top + $cartIcon.height() / 2) + 'px'
                                 }).addClass('shrinking');
                             }, 50);
-
                             setTimeout(function () {
                                 $giftBox.remove();
                                 $('.cart-badge').text(response.totalItems).hide().fadeIn();
@@ -386,15 +291,9 @@ else
                                 setTimeout(function(){ $cartIcon.removeClass('cart-shake'); }, 500);
                             }, 800);
                         }
-                    } else {
-                        alert(response.message || 'Lỗi khi thêm vào giỏ.');
-                    }
+                    } else { alert(response.message || 'Lỗi khi thêm vào giỏ.'); }
                 }
             });
-        });
-
-        $(document).on('click', '.input-quantity-val', function(e) {
-            e.stopPropagation();
         });
     });
 </script>

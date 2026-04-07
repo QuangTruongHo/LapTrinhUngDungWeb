@@ -1,26 +1,43 @@
 ﻿@using SV22T1020488.Models.Sales
-@using SV22T1020488.Shop.AppCodes @* Đảm bảo namespace này khớp với file SelectListHelper của bạn *@
+@using SV22T1020488.Shop @* Namespace chứa class WebUserData *@
+@using SV22T1020488.Shop.AppCodes
 @model IEnumerable<OrderDetailViewInfo>
 @{
     var order = ViewBag.Order as Order;
     ViewBag.Title = "Chi tiết đơn hàng #" + order?.OrderID;
 
-    // Lấy danh sách Tỉnh/Thành từ Helper (hàm async nên dùng await)
+    // Lấy thông tin người dùng đang đăng nhập
+    var userData = WebUserData.GetUserData(User);
+
+    // Lấy danh sách Tỉnh/Thành từ Helper
     var provinces = await SelectListHelper.Provinces();
 
-    // Kiểm tra trạng thái hủy
+    // Kiểm tra các nhóm trạng thái
     bool isCancelled = order.Status == OrderStatusEnum.Cancelled || order.Status == OrderStatusEnum.Rejected;
+    bool isFinished = order.Status == OrderStatusEnum.Completed;
+    bool isNew = order.Status == OrderStatusEnum.New;
 
-    // Logic kiểm tra quyền chỉnh sửa địa chỉ (Chỉ khi đơn mới tạo)
-    bool canEdit = order.Status == OrderStatusEnum.New;
+    // Logic quyền hạn
+    bool canEdit = isNew;
+    bool canCancel = isNew;
 
-    // Logic kiểm tra xem khách có được quyền hủy không (Chỉ khi đơn mới tạo)
-    bool canCancel = order.Status == OrderStatusEnum.New;
+    // --- THIẾT LẬP MÀU SẮC DỰA TRÊN TRẠNG THÁI ---
+    string statusBgColor = "#fdf2f8"; // Mặc định (Hồng nhạt cho đơn mới/đang xử lý)
+    string statusLabelBg = "var(--neo-yellow)";
+    string statusLabelText = "#000";
 
-    // Thiết lập màu sắc chủ đạo dựa trên trạng thái
-    string statusBgColor = isCancelled ? "#fee2e2" : "#fdf2f8";
-    string statusLabelBg = isCancelled ? "#ef4444" : "var(--neo-yellow)";
-    string statusLabelText = isCancelled ? "#fff" : "#000";
+    if (isCancelled)
+    {
+        statusBgColor = "#fee2e2"; // Đỏ nhạt
+        statusLabelBg = "#ef4444"; // Đỏ đậm
+        statusLabelText = "#fff";
+    }
+    else if (isFinished)
+    {
+        statusBgColor = "#f0fdf4"; // Xanh lá nhạt
+        statusLabelBg = "#22c55e"; // Xanh lá đậm
+        statusLabelText = "#fff";
+    }
 }
 
 <style>
@@ -97,49 +114,61 @@
         text-align: center;
     }
 
-    /* Nút sửa địa chỉ nhỏ gọn */
     .btn-edit-addr {
-        position: absolute;
-        right: 8px;
-        top: 8px;
         background: #a5f3fc;
-        border: 1px solid #000;
-        padding: 2px 6px;
-        font-size: 0.6rem;
+        border: 2px solid #000;
+        padding: 2px 8px;
+        font-size: 0.65rem;
         font-weight: 900;
         box-shadow: 2px 2px 0px #000;
         cursor: pointer;
+        text-transform: uppercase;
     }
+
+        .btn-edit-addr:hover {
+            background: #22d3ee;
+        }
 
     .fw-black {
         font-weight: 900;
     }
 
-    .table > :not(caption) > * > * {
-        padding: 0.6rem 0.4rem;
+    .timeline-neo {
+        margin-top: 10px;
+        padding-left: 15px;
+        border-left: 3px solid #000;
     }
 
-    .cancelled-shake {
-        animation: subtle-shake 0.5s ease-in-out;
-    }
-    @Html.Raw("@") keyframes subtle-shake {
-        0%, 100%
-
-    {
-        transform: translateX(0);
+    .timeline-item-neo {
+        position: relative;
+        padding-bottom: 12px;
     }
 
-    25% {
-        transform: translateX(-2px);
+        .timeline-item-neo::before {
+            content: "";
+            position: absolute;
+            left: -22px;
+            top: 2px;
+            width: 12px;
+            height: 12px;
+            background: #000;
+            border: 2px solid var(--neo-yellow);
+        }
+
+    .timeline-date-neo {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #000;
+        display: block;
     }
 
-    75% {
-        transform: translateX(2px);
+    .timeline-desc-neo {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
     }
 
-    }
-
-    /* Modal Style */
     .neo-modal {
         display: none;
         position: fixed;
@@ -170,23 +199,18 @@
         font-weight: 700;
         margin-bottom: 15px;
         box-shadow: 3px 3px 0px #ccc;
-        background: #fff; /* Đảm bảo select có nền trắng */
+        background: #fff;
     }
-
-        .neo-input:focus {
-            outline: none;
-            box-shadow: 3px 3px 0px var(--neo-yellow);
-        }
 </style>
 
 <div class="container-fluid neo-compact-final py-3" style="max-width: 1150px;">
     @Html.AntiForgeryToken()
 
     <div class="row g-3">
-        @* Cột 1: Theo dõi đơn hàng *@
+        @* Cột 1: Thông tin khách hàng & Theo dõi đơn *@
         <div class="col-lg-4">
-            <div class="custom-card p-3 h-100 @(isCancelled ? "cancelled-shake" : "")"
-                 style="background: @statusBgColor; border: 2px solid #000; box-shadow: 6px 6px 0px #000;">
+            <div class="custom-card p-3 h-100"
+                 style="background: @statusBgColor; border: 2px solid #000; box-shadow: 6px 6px 0px #000; transition: background 0.3s ease;">
 
                 <h6 class="fw-bold text-uppercase border-bottom border-dark border-2 pb-2 mb-3">
                     <i class="bi bi-geo-alt-fill me-1"></i>Theo dõi đơn
@@ -200,23 +224,59 @@
                 </div>
 
                 <div class="info-box-neo">
-                    <span class="info-label-neo">Mã đơn</span>
-                    <p class="info-value-neo">#@order.OrderID</p>
-                </div>
+                    <span class="info-label-neo">Người đặt hàng</span>
+                    <p class="info-value-neo">@userData?.DisplayName</p>
+                    <p class="info-value-neo text-muted small"><i class="bi bi-envelope-at me-1"></i>@userData?.Email</p>
 
-                <div class="info-box-neo">
-                    <span class="info-label-neo">Ngày đặt</span>
-                    <p class="info-value-neo">@order.OrderTime.ToString("dd/MM/yyyy HH:mm")</p>
-                </div>
+                    <p class="info-value-neo text-danger small mt-1">
+                        <i class="bi bi-telephone-fill me-1"></i>
+                        <strong>@(string.IsNullOrEmpty(userData?.Phone) ? "Chưa cập nhật SĐT" : userData.Phone)</strong>
+                    </p>
 
-                <div class="info-box-neo">
-                    <span class="info-label-neo">Địa chỉ giao hàng</span>
-                    @if (canEdit)
-                    {
-                        <button class="btn-edit-addr" onclick="openAddressModal()">SỬA ĐỊA CHỈ</button>
-                    }
-                    <p class="info-value-neo" id="currentAddress" style="font-size: 0.85rem;">@order.DeliveryAddress</p>
+                    <hr class="my-2" style="border-top: 1px dashed #000; opacity: 1;">
+
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="info-label-neo m-0">Địa chỉ nhận hàng</span>
+                        @if (canEdit)
+                        {
+                            <button class="btn-edit-addr" onclick="openAddressModal()">Sửa địa chỉ</button>
+                        }
+                    </div>
+
+                    <p class="info-value-neo">Mã đơn: #@order.OrderID</p>
+                    <p class="info-value-neo text-muted small mt-1" id="currentAddress">@order.DeliveryAddress</p>
                     <p class="info-value-neo text-muted small" id="currentProvince">@order.DeliveryProvince</p>
+                </div>
+
+                <div class="info-box-neo">
+                    <span class="info-label-neo">Lộ trình xử lý</span>
+                    <div class="timeline-neo">
+                        <div class="timeline-item-neo">
+                            <span class="timeline-date-neo">@order.OrderTime.ToString("dd/MM/yyyy HH:mm")</span>
+                            <span class="timeline-desc-neo">Đã đặt đơn hàng</span>
+                        </div>
+                        @if (order.AcceptTime.HasValue)
+                        {
+                            <div class="timeline-item-neo">
+                                <span class="timeline-date-neo">@order.AcceptTime.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                <span class="timeline-desc-neo">Đã được xác nhận</span>
+                            </div>
+                        }
+                        @if (order.ShippedTime.HasValue)
+                        {
+                            <div class="timeline-item-neo">
+                                <span class="timeline-date-neo">@order.ShippedTime.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                <span class="timeline-desc-neo">Đang vận chuyển</span>
+                            </div>
+                        }
+                        @if (order.FinishedTime.HasValue)
+                        {
+                            <div class="timeline-item-neo">
+                                <span class="timeline-date-neo">@order.FinishedTime.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                <span class="timeline-desc-neo">@(isCancelled ? "Kết thúc xử lý" : "Giao hàng thành công")</span>
+                            </div>
+                        }
+                    </div>
                 </div>
 
                 @if (canCancel)
@@ -224,13 +284,6 @@
                     <button type="button" class="btn-neo-nav btn-neo-cancel" onclick="handleCancelOrder(@order.OrderID)">
                         <i class="bi bi-x-circle-fill me-1"></i> Hủy đơn hàng này
                     </button>
-                }
-
-                @if (isCancelled)
-                {
-                    <div class="p-2 mt-2 text-center fw-bold" style="border: 2px solid #000; background: #fff; color: #ef4444; font-size: 0.8rem; text-transform: uppercase;">
-                        <i class="bi bi-exclamation-octagon-fill me-1"></i>Đơn hàng này không khả dụng
-                    </div>
                 }
             </div>
         </div>
@@ -276,7 +329,7 @@
                             <tr>
                                 <td colspan="3" class="text-end fw-black pt-3">TỔNG CỘNG:</td>
                                 <td class="text-end pt-3">
-                                    <span class="h5 fw-black @(isCancelled ? "text-muted" : "text-danger")">
+                                    <span class="h5 fw-black @(isCancelled ? "text-muted" : (isFinished ? "text-success" : "text-danger"))">
                                         @Model.Sum(x => x.TotalPrice).ToString("N0")đ
                                     </span>
                                 </td>
@@ -310,7 +363,7 @@
     </div>
 </div>
 
-@* MODAL SỬA ĐỊA CHỈ - ĐÃ CẬP NHẬT SELECT *@
+@* MODAL SỬA ĐỊA CHỈ *@
 <div id="addressModal" class="neo-modal">
     <div class="neo-modal-content">
         <h5 class="fw-black text-uppercase mb-3">Cập nhật địa chỉ nhận hàng</h5>
@@ -321,14 +374,7 @@
         <select id="selectProvince" class="neo-input">
             @foreach (var item in provinces)
             {
-                if (item.Value == order.DeliveryProvince)
-                {
-                    <option value="@item.Value" selected>@item.Text</option>
-                }
-                else
-                {
-                    <option value="@item.Value">@item.Text</option>
-                }
+                <option value="@item.Value" selected="@(item.Value == order.DeliveryProvince)">@item.Text</option>
             }
         </select>
 
@@ -340,7 +386,6 @@
 </div>
 
 <script>
-    // --- PHẦN HỦY ĐƠN ---
     let selectedOrderIdForCancel = 0;
 
     function handleCancelOrder(orderId) {
@@ -370,7 +415,6 @@
         });
     });
 
-    // --- PHẦN CẬP NHẬT ĐỊA CHỈ ---
     function openAddressModal() {
         document.getElementById('addressModal').style.display = 'block';
     }
@@ -382,7 +426,7 @@
     document.getElementById('btnConfirmAddress').addEventListener('click', function() {
         const btn = this;
         const addr = $('#inputAddress').val();
-        const prov = $('#selectProvince').val(); @* Lấy giá trị từ select *@
+        const prov = $('#selectProvince').val();
         const token = $('input[name="__RequestVerificationToken"]').val();
 
         if(!addr || !prov) { alert("Vui lòng nhập đầy đủ thông tin!"); return; }
@@ -415,7 +459,6 @@
         });
     });
 
-    // Close modals on outside click
     window.onclick = function(event) {
         if (event.target.className === 'neo-modal') {
             closeCancelModal();

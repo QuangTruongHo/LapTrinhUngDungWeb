@@ -15,6 +15,7 @@
         --neo-pink: #f8bbd0;
         --neo-green: #a3d9c5;
         --neo-blue: #a6c1ee;
+        --neo-red: #ff6b6b;
     }
 
     body {
@@ -130,20 +131,22 @@
             color: var(--neo-border);
         }
 
+    /* Hiệu ứng biến mất cho Toast */
+    #statusToast {
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
     @@media (max-width: 768px) {
-        .profile-avatar-wrapper
+        .profile-avatar-wrapper {
+            left: 50%;
+            transform: translateX(-50%);
+        }
 
-    {
-        left: 50%;
-        transform: translateX(-50%);
-    }
-
-    .profile-main-info {
-        padding-top: 90px;
-        text-align: center;
-        justify-content: center;
-    }
-
+        .profile-main-info {
+            padding-top: 90px;
+            text-align: center;
+            justify-content: center;
+        }
     }
 </style>
 
@@ -152,7 +155,6 @@
     <div class="custom-card mb-5">
         <div class="profile-header-banner">
             <div class="profile-avatar-wrapper">
-                @* LOGIC: Hiển thị ảnh thực tế từ thư mục images/customers *@
                 <img src="~/images/customers/@avatar"
                      onerror="this.src='https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp'"
                      class="profile-avatar-img">
@@ -164,7 +166,6 @@
                 <span class="badge bg-dark rounded-0 px-3 py-2 mt-2">KHÁCH HÀNG: #@Model.CustomerID</span>
             </div>
             <div class="mt-3">
-                @* LOGIC: Điều hướng tới trang chỉnh sửa hồ sơ *@
                 <a href="~/Account/Edit" class="btn-neo-edit">
                     <i class="bi bi-pencil-square me-2"></i>Sửa hồ sơ
                 </a>
@@ -178,14 +179,12 @@
             <div class="custom-card p-4 h-100">
                 <h5 class="mb-4 fw-bold text-uppercase border-bottom border-dark border-3 pb-2">Quản lý tài khoản</h5>
                 <div class="menu-list-neo">
-                    @* LOGIC: Liên kết tới lịch sử đơn hàng đã làm *@
                     <a href="~/Order/History" class="list-group-item-neo">
                         <i class="bi bi-bag-fill me-2"></i> Đơn hàng của tôi
                     </a>
                     <button type="button" class="list-group-item-neo w-100 text-start" data-bs-toggle="modal" data-bs-target="#modalChangePassword">
                         <i class="bi bi-key-fill me-2"></i> Đổi mật khẩu
                     </button>
-                    @* LOGIC: Link đăng xuất *@
                     <a href="~/Account/Logout" class="list-group-item-neo text-danger">
                         <i class="bi bi-door-open-fill me-2"></i> Đăng xuất
                     </a>
@@ -241,7 +240,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" style="background: var(--neo-bg);">
-                @* LOGIC: Trỏ về Action ChangePassword trong AccountController *@
+
+                @if (TempData["MessageType"] != null && TempData["MessageType"].ToString() == "error")
+                {
+                    <div class="p-2 mb-3 fw-bold" style="border: 2px solid #000; background: #ffcfcf; font-size: 0.9rem;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Message"]
+                    </div>
+                }
+
                 <form action="~/Account/ChangePassword" method="post">
                     @Html.AntiForgeryToken()
 
@@ -273,14 +279,40 @@
 @* LOGIC: Hiển thị thông báo phản hồi từ Server *@
 @if (TempData["Message"] != null)
 {
+    var isError = TempData["MessageType"]?.ToString() == "error";
+    var toastBg = isError ? "var(--neo-red)" : "var(--neo-yellow)";
+
     <div id="statusToast" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1060">
-        <div class="p-3 fw-bold text-uppercase" style="background: var(--neo-yellow); border: 4px solid #000; box-shadow: 5px 5px 0px #000;">
+        <div class="p-3 fw-bold text-uppercase" style="background: @toastBg; border: 4px solid #000; box-shadow: 5px 5px 0px #000; color: @(isError ? "#fff" : "#000")">
+            <i class="bi @(isError ? "bi-exclamation-octagon" : "bi-check-circle") me-2"></i>
             @TempData["Message"]
         </div>
     </div>
+
     <script>
-        setTimeout(function () {
-            document.getElementById('statusToast').style.display = 'none';
-        }, 5000);
+        document.addEventListener("DOMContentLoaded", function() {
+            var toast = document.getElementById('statusToast');
+            if(toast) {
+                // Sau 3 giây bắt đầu hiệu ứng mờ dần (opacity về 0)
+                setTimeout(function () {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(20px)'; // Hiệu ứng trượt xuống nhẹ
+
+                    // Sau khi hiệu ứng kết thúc (600ms) thì xóa hẳn khỏi màn hình
+                    setTimeout(function() {
+                        toast.style.display = 'none';
+                    }, 600);
+                }, 3500);
+            }
+
+            @if (isError)
+            {
+                    <text>
+                        var modalEl = document.getElementById('modalChangePassword');
+                        var myModal = new bootstrap.Modal(modalEl);
+                        myModal.show();
+                    </text>
+            }
+        });
     </script>
 }

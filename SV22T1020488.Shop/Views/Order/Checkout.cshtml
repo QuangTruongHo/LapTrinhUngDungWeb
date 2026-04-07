@@ -75,7 +75,7 @@
         }
 
     .checkout-item-list {
-        max-height: 350px;
+        max-height: 400px;
         overflow-y: auto;
         margin-bottom: 20px;
         border: 3px solid #000;
@@ -91,14 +91,25 @@
         border-bottom: 2px dashed #000;
     }
 
-    .item-img {
-        width: 50px;
-        height: 50px;
-        object-fit: cover;
+    /* ĐỊNH DẠNG LẠI KHUNG ẢNH */
+    .item-img-wrapper {
+        width: 70px;
+        height: 70px;
         border: 2px solid #000;
+        flex-shrink: 0;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
     }
 
-    /* CSS MỚI CHO BỘ TĂNG GIẢM SỐ LƯỢNG */
+    .item-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
     .neo-qty-box {
         display: flex;
         border: 2px solid #000;
@@ -218,7 +229,7 @@
             </div>
         </div>
 
-        @* CỘT PHẢI: CHI TIẾT ĐƠN HÀNG (ĐÃ CẬP NHẬT LOGIC CHỈNH SỐ LƯỢNG) *@
+        @* CỘT PHẢI: CHI TIẾT ĐƠN HÀNG *@
         <div class="col-md-6">
             <div class="neo-card" style="background: var(--neo-yellow);">
                 <h2 class="fw-black text-uppercase mb-4 border-bottom border-dark border-4 pb-2">🛒 Đơn hàng</h2>
@@ -227,12 +238,18 @@
                     @foreach (var item in cart)
                     {
                         <div class="checkout-item" data-product-id="@item.ProductID" data-price="@item.SalePrice">
-                            <img src="https://localhost:7089/images/products/@(string.IsNullOrEmpty(item.Photo) ? "no-image.jpg" : item.Photo)" class="item-img" />
+                            @* --- SỬA TẠI ĐÂY: DÙNG ĐƯỜNG DẪN TƯƠNG ĐỐI TỚI THƯ MỤC ẢNH --- *@
+                            <div class="item-img-wrapper">
+                                <img src="@Url.Content("~/images/products/" + (string.IsNullOrEmpty(item.Photo) ? "no-image.jpg" : item.Photo))"
+                                     alt="@item.ProductName"
+                                     class="item-img"
+                                     onerror="this.src='/images/products/no-image.jpg'" />
+                            </div>
+
                             <div class="flex-grow-1">
                                 <div class="fw-bold text-uppercase small">@item.ProductName</div>
                                 <div class="small text-muted">Đơn giá: @item.SalePrice.ToString("N0")</div>
 
-                                @* BỘ ĐIỀU CHỈNH SỐ LƯỢNG MỚI *@
                                 <div class="neo-qty-box">
                                     <button class="qty-btn btn-minus-qty">-</button>
                                     <input type="text" class="qty-input" value="@item.Quantity" readonly />
@@ -275,12 +292,8 @@
 
 <script>
     $(document).ready(function () {
-        // --- LOGIC CẬP NHẬT SỐ LƯỢNG AJAX ---
         function updateCartQuantity(productId, newQuantity, $itemRow) {
-            // Lấy giá trị từ input hidden đã có trong form
             const isBuyNow = $("input[name='isBuyNow']").val() === "true";
-
-            // LUÔN GỌI VỀ UpdateQuantity, không gọi hàm 404 kia nữa
             const url = "/Cart/UpdateQuantity";
 
             $.ajax({
@@ -289,29 +302,23 @@
                 data: {
                     id: productId,
                     quantity: newQuantity,
-                    isBuyNow: isBuyNow // Gửi thêm tham số này cho Controller
+                    isBuyNow: isBuyNow
                 },
                 success: function (res) {
                     if (res.success) {
-                        // Cập nhật số lượng trong ô input
                         $itemRow.find('.qty-input').val(newQuantity);
-
-                        // Cập nhật thành tiền của dòng đó từ Server trả về
                         $itemRow.find('.item-total-price').text(res.itemTotal);
-
-                        // Cập nhật tổng cộng đơn hàng từ Server trả về (chính xác tuyệt đối)
                         $('#grand-total').text(res.grandTotal);
                     } else {
                         alert(res.message || "Không thể cập nhật số lượng");
                     }
                 },
                 error: function () {
-                    alert("Lỗi kết nối máy chủ. Hãy đảm bảo bạn đã cập nhật Controller.");
+                    alert("Lỗi kết nối máy chủ.");
                 }
             });
         }
 
-        // Sự kiện nút cộng
         $('.btn-plus-qty').click(function() {
             const $row = $(this).closest('.checkout-item');
             const id = $row.data('product-id');
@@ -319,7 +326,6 @@
             updateCartQuantity(id, currentQty + 1, $row);
         });
 
-        // Sự kiện nút trừ
         $('.btn-minus-qty').click(function() {
             const $row = $(this).closest('.checkout-item');
             const id = $row.data('product-id');
@@ -329,7 +335,6 @@
             }
         });
 
-        // --- XỬ LÝ PHƯƠNG THỨC THANH TOÁN ---
         $('input[name="paymentMethod"]').change(function () {
             const method = $(this).val();
             const btn = $('#btnSubmit');
